@@ -40,14 +40,10 @@ Optional:
  
 _python Pycoevol.py  -input1 -input2 -psiblast -alignment -coevolution_
        
-    input1        -sequence1.fasta or -pdb1.pdb:A, where A is the 
-                  chain designator                  
-    input2        -sequence2.fasta or -pdb2.pdb:B, where B is the 
-                  chain designator
-    psiblast      -internet or -local (needs NCBI's PSIBLAST and 
-                  local database)  
-    alignment     -clustalw, -muscle or -mafft (MUSCLE and MAFFT 
-                  are optional)
+    input1        -sequence1.fasta or -pdb1.pdb:A, where A is the chain designator                  
+    input2        -sequence2.fasta or -pdb2.pdb:B, where B is the chain designator
+    psiblast      -internet or -local (needs NCBI's PSIBLAST and local database)  
+    alignment     -clustalw, -muscle or -mafft (MUSCLE and MAFFT are optional)
     coevolution   -mi, -mie, -rcwmi,-cpvnmie, -cpvn, -clm or -vol
     help          -h or -help
 
