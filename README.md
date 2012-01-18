@@ -15,6 +15,7 @@ This software is public domain, and everyone has the right to copy,
 distribute, reuse, modify, improve and debug it.
 
 If you want to cite this piece of software/workflow use the following:
+
 Madeira, F., Krippahl, L. (2011). PYCOEVOL: A Python workflow to study 
 protein-protein coevolution. International conference on Bioinformatics 
 Models, Methods and Algorithms - BIOINFORMATICS 2012, Vila Moura, 
