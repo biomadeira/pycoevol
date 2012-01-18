@@ -1,0 +1,8 @@
+#
+# Alias file created: Jun 26, 2011  8:38 PM
+#
+# Edit this file to reflet the location of your database
+# Get the database at ftp://ftp.ncbi.nih.gov/blast/db/
+#
+TITLE  NCBI Protein Reference Sequences
+DBLIST ./Pycoevol/src/tools/Blast+/db/refseq_protein.00 ./Pycoevol/src/tools/Blast+/db/refseq_protein.01 ./Pycoevol/src/tools/Blast+/db/refseq_protein.02 ./Pycoevol/src/tools/Blast+/db/refseq_protein.03
