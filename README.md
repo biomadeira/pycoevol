@@ -4,12 +4,12 @@
 Madeira, F. and Krippahl, L. PYCOEVOL: A Python workflow to study 
 protein-protein coevolution. BIOINFORMATICS 2012 (accepted)
 
-##Disclaimer## 
+##Disclaimer 
 
 This software is provided "as is", with no explicit or implied 
 warranties. Use this software at your own risk.
 
-##Copyright##
+##Copyright
 
 This software is public domain, and everyone has the right to copy, 
 distribute, reuse, modify, improve and debug it.
@@ -20,22 +20,22 @@ protein-protein coevolution. International conference on Bioinformatics
 Models, Methods and Algorithms - BIOINFORMATICS 2012, Vila Moura, 
 Portugal, February 1-4, 2012 
 
-##Dependencies##
+##Dependencies
 
-[Python 2.7.2](http://python.org/)
-[Biopython 1.58](http://biopython.org/)
-[Numpy 1.6.1](http://numpy.scipy.org/)
-[Matplotlib 1.1.0](http://matplotlib.sourceforge.net/)
+[Python 2.7.2](http://python.org/),
+[Biopython 1.58](http://biopython.org/),
+[Numpy 1.6.1](http://numpy.scipy.org/),
+[Matplotlib 1.1.0](http://matplotlib.sourceforge.net/),
 [ClustalW](http://www.clustal.org/)
 
 Optional (latest):
-[NCBI Blast+](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/)
-[NCBI "refseq_protein" database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/)
-[Muscle](http://www.drive5.com/muscle/)
+[NCBI Blast+](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/),
+[NCBI "refseq_protein" database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/),
+[Muscle](http://www.drive5.com/muscle/),
 [Mafft](http://mafft.cbrc.jp/alignment/software/)
 
 
-##Usage##
+##Usage
  
 _python Pycoevol.py  -input1 -input2 -psiblast -alignment -coevolution_
        
@@ -61,7 +61,7 @@ The processed files are written in the ./Pycoevol/Data folder and
 output results are written in the ./Pycoevol/Results folder.
 Make sure you insert input files in the ./Pycoevol/Data folder.
 
-##Availability##
+##Availability
 
 Packages available at:
 http://code.google.com/p/pycoevol/
