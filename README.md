@@ -1,4 +1,5 @@
-﻿# PYCOEVOL #
+﻿PYCOEVOL
+========
 
 Madeira, F. and Krippahl, L. PYCOEVOL: A Python workflow to study 
 protein-protein coevolution. BIOINFORMATICS 2012 (accepted)
@@ -22,22 +23,15 @@ Portugal, February 1-4, 2012
 ##Dependencies##
 
 [Python 2.7.2](http://python.org/)
-
 [Biopython 1.58](http://biopython.org/)
-
 [Numpy 1.6.1](http://numpy.scipy.org/)
-
 [Matplotlib 1.1.0](http://matplotlib.sourceforge.net/)
-
 [ClustalW](http://www.clustal.org/)
 
 Optional (latest):
 [NCBI Blast+](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/)
-
 [NCBI "refseq_protein" database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/)
-
 [Muscle](http://www.drive5.com/muscle/)
-
 [Mafft](http://mafft.cbrc.jp/alignment/software/)
 
 
