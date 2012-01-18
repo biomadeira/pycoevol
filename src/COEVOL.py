@@ -108,24 +108,30 @@ class coevolution:
             columns2 = transpose(alignment2)
             pD2 = probabilityDict(columns2)
          
+            i_all = dict()
+            all_j = dict()
+            for i in range(len(columns1)):
+                v_i = 0
+                for j in range(len(columns2)):
+                    v_i += mutualInformation(i, j, columns1, columns2, 
+                                             pD1, pD2)
+                    i_all[i]= v_i
+
+            for j in range(len(columns2)):
+                v_j = 0
+                for i in range(len(columns1)):
+                    v_j += mutualInformation(i, j, columns1, columns2, 
+                                             pD1, pD2)
+                    all_j[j]= v_j
+            
+            column = columns1[0]
+            n = len(column)
             for i in range(len(columns1)):
                 for j in range(len(columns2)):
                     mi = mutualInformation(i, j, columns1, columns2, 
-                                           pD1, pD2)
-                    
-                    i_all = 0
-                    for Js in range(len(columns2)):
-                        i_all += mutualInformation(i, Js, 
-                                                   columns1, columns2, pD1, pD2)
-                    
-                    all_j = 0
-                    for Is in range(len(columns1)):
-                        all_j += mutualInformation(Is, j, 
-                                                   columns1, columns2, pD1, pD2)
-                    
-                    column = columns1[0]
-                    n = len(column)        
-                    info[(i,j)] = rowColumnWeighed(mi, i_all, all_j, n)
+                                           pD1, pD2)    
+                    info[(i,j)] = rowColumnWeighed(mi, 
+                                                   i_all[i], all_j[j], n)
         
         elif coevolution == "cpvnmie":
             alignment1 = [e for e in alignment1]
