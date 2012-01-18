@@ -25,13 +25,13 @@ Portugal, February 1-4, 2012
 [Python 2.7.2](http://python.org/),
 [Biopython 1.58](http://biopython.org/),
 [Numpy 1.6.1](http://numpy.scipy.org/),
-[Matplotlib 1.1.0](http://matplotlib.sourceforge.net/),
+[Matplotlib 1.1.0](http://matplotlib.sourceforge.net/) and
 [ClustalW](http://www.clustal.org/)
 
-Optional (latest):
+Optional:
 [NCBI Blast+](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/),
 [NCBI "refseq_protein" database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/),
-[Muscle](http://www.drive5.com/muscle/),
+[Muscle](http://www.drive5.com/muscle/) and
 [Mafft](http://mafft.cbrc.jp/alignment/software/)
 
 
@@ -63,10 +63,10 @@ Make sure you insert input files in the ./Pycoevol/Data folder.
 
 ##Availability
 
-Packages available at:
+Packages available at
 http://code.google.com/p/pycoevol/
 
-Source code available at:
+Source code available at
 https://github.com/fmadeira/pycoevol
 
 
