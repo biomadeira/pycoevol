@@ -9,8 +9,9 @@ from src.SEQ import sequence as class_sequence
 from src.ALIGN import alignment as class_alignment
 from Parameters import results_histogram, results_heatmap, results_structure
 from Parameters import best_results
+from src.UTILS import aa
 from math import log
-from numpy import zeros
+from numpy import mean, zeros
 from matplotlib import pyplot
 
 
@@ -143,25 +144,31 @@ class coevolution:
                     info[(i,j)] = contactPreferenceMI(mie, res1, res2)
                     
         elif coevolution == "cpvn":
-            for i in range(len(alignment1[0])):
-                for j in range(len(alignment2[0])):
-                    res1 = str(alignment1[0][i])
-                    res2 = str(alignment2[0][j])
-                    info[(i,j)] = float(matchScore(res1, res2, "CPVN"))
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    average = []
+                    for a,b in zip(columns1[i],columns2[j]):
+                        if a in aa and b in aa:
+                            average.append(float(matchScore(res1, res2, "CPVN")))
+                    info[(i,j)] = mean(average)
 
         elif coevolution == "clm":
             for i in range(len(alignment1[0])):
                 for j in range(len(alignment2[0])):
-                    res1 = str(alignment1[0][i])
-                    res2 = str(alignment2[0][j])
-                    info[(i,j)] = float(matchScore(res1, res2, "CLM"))
+                    average = []
+                    for a,b in zip(columns1[i],columns2[j]):
+                        if a in aa and b in aa:
+                            average.append(float(matchScore(res1, res2, "CLM")))
+                    info[(i,j)] = mean(average)
                     
         elif coevolution == "vol":
             for i in range(len(alignment1[0])):
                 for j in range(len(alignment2[0])):
-                    res1 = str(alignment1[0][i])
-                    res2 = str(alignment2[0][j])
-                    info[(i,j)] = float(matchScore(res1, res2, "VOL"))     
+                    average = []
+                    for a,b in zip(columns1[i],columns2[j]):
+                        if a in aa and b in aa:
+                            average.append(float(matchScore(res1, res2, "VOL")))
+                    info[(i,j)] = mean(average)   
         else: pass
         
         
