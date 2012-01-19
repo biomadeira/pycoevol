@@ -38,56 +38,83 @@ class organism:
     def uniqueOrganism(self, id1, id2):
         "Selects best hit for each matching organism"
         
-        input1 = "./Data/" + id1 + ".blast"
+        input1 = "./Data/" + id1 + ".blast"        
+        input2 = "./Data/" + id2 + ".blast"
+        
+
         ord_dict1 = orderedDict(SeqIO.parse(input1, "fasta",IUPAC.protein), 
                                 key_function=checkOrganism)
         
-        input2 = "./Data/" + id2 + ".blast"
         ord_dict2 = orderedDict(SeqIO.parse(input2, "fasta",IUPAC.protein), 
                                 key_function=checkOrganism)
         
-        sequences1 = {}
-        seq1 = []
+        org1 = []
         for keys1 in ord_dict1.keys():
             if keys1 in ord_dict2.keys():
                 organism = ord_dict1[keys1].description
-                sequence = ord_dict1[keys1].seq
-                seq1.append(organism)
-                sequences1[organism] = sequence
+                org1.append(organism)
         
-        sequences2 = {}
-        seq2 = []
+        org2 = []
         for keys2 in ord_dict2.keys():
             if keys2 in ord_dict1.keys():
                 organism = ord_dict2[keys2].description
-                sequence = ord_dict2[keys2].seq
-                seq2.append(organism)
-                sequences2[organism] = sequence
+                org2.append(organism)
+                
 
-        if seq1 == [] or seq2 == []:
+        if org1 == [] or org2 == []:
             raise StandardError, "There is no matching organisms"
-        elif len(seq1) < 15 or len(seq2) <15:
-            raise StandardError, "Number of matching organisms < 15"
+        elif len(org1) <15 or len(org2) <15:
+            raise StandardError, "Number of matching organisms <15"
         else: pass
-        
+
         organism = []
         list = []
-        for org in seq1:
-            if org in seq2:
-                value = [seq1.index(org) + seq2.index(org), 
-                         seq1.index(org), seq2.index(org), org]
+        for org in org1:
+            if org in org2:
+                value = [org1.index(org) + org2.index(org), 
+                         org1.index(org), org2.index(org), org]
                 list.append(value)
         sort = sorted(list)
         for index in sort:
             org = index[3]
             organism.append(org)
+            
+        input_sequences1 = SeqIO.parse(input1, "fasta", IUPAC.protein)
+        sequences1 = []
+        for record in input_sequences1:
+            org = str(record.description)
+            seq = str(record.seq)
+            if org in org1:
+                value = [org, seq]
+                sequences1.append(value)
+                
+        input_sequences2 = SeqIO.parse(input2, "fasta", IUPAC.protein) 
+        sequences2 =[]
+        for record in input_sequences2:
+            org = str(record.description)
+            seq = str(record.seq)
+            if org in org2:
+                value = [org, seq]
+                sequences2.append(value)    
         
         self.ord_sequences1 = []
         self.ord_sequences2 = []
         for org in organism:
-            value = [org, str(sequences1[org])]
+            seq = ""
+            for o in sequences1:
+                organ = o[0]
+                seque = o[1]
+                if org == organ:
+                    seq += seque + ":"
+            value = [org, seq]
             self.ord_sequences1.append(value)
-            value = [org, str(sequences2[org])]
+            seq = ""
+            for o in sequences2:
+                organ = o[0]
+                seque = o[1]
+                if org == organ:
+                    seq += seque + ":"
+            value = [org, seq]
             self.ord_sequences2.append(value)
         
         return self.ord_sequences1, self.ord_sequences2
@@ -116,18 +143,22 @@ class organism:
         for entry in self.ord_sequences1:
             p_desc = str(entry[0])
             p_seq = str(entry[1])
-                       
-            pair = "./Data/" + id1 + ".pair"
-            out_pair= open(pair, "w")
+            p_seq = p_seq.rstrip(":")
+            p_seq = p_seq.split(":")
+            new_rec = []
+            for seq in p_seq:
+                p_new_seq = seq   
+                pair = "./Data/" + id1 + ".pair"
+                out_pair= open(pair, "w")
             
-            sequence1 = str("\n" + ">" +q_desc + "\n" + q_seq + "\n")
-            sequence2 = str("\n" + ">" + p_desc + "\n" + p_seq + "\n")
-            out_pair.write(sequence1 + sequence2)
-            out_pair.close()    
+                sequence1 = str("\n" + ">" + q_desc + "\n" + q_seq + "\n")
+                sequence2 = str("\n" + ">" + p_desc + "\n" + p_new_seq + "\n")
+                out_pair.write(sequence1 + sequence2)
+                out_pair.close()    
             
-            output_align = "./Data/" + id1 + "_pair.aln"
-            output_tree = "./Data/" + id1 + "_pair.dnd"
-            clustalw = ClustalwCommandline(infile=pair, 
+                output_align = "./Data/" + id1 + "_pair.aln"
+                output_tree = "./Data/" + id1 + "_pair.dnd"
+                clustalw = ClustalwCommandline(infile=pair, 
                                            outfile=output_align, 
                                            newtree=output_tree, 
                                            align="input", 
@@ -138,34 +169,27 @@ class organism:
                                            pwmatrix="GONNET", 
                                            gapopen=10, 
                                            gapext=0.2) 
-            clustalw()
-            
-            if trim == True:
-                alignment = AlignIO.read(output_align, "clustal")
-                length = alignment.get_alignment_length()
-                for s in range(0,length,1):
-                    column = alignment[:, s]
-                    if column[0] != "-":
-                        start = s
-                        break
-                for e in range(int(length-1), 0, -1):
-                    column = alignment[:, e]
-                    if column[0] != "-":
-                        end = e
-                        break
-            
-                p_new_seq = p_seq[int(start):int(end)]            
-            
-                output = "./Data/" + id1 + ".fasta"
-                out_fasta = open(output, "a")
-                out_fasta.write("\n" + ">" + p_desc + "\n" + p_new_seq + "\n")
-                out_fasta.close()
-            else: pass
-            
-            if method != None:
+                clustalw()
                 output_fasta = "./Data/" + id1 + "_pair.fasta"
                 AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
+                
+                if trim == True:
+                    alignment = AlignIO.read(output_align, "clustal")
+                    length = alignment.get_alignment_length()
+                    for s in range(0,length,1):
+                        column = alignment[:, s]
+                        if column[0] != "-":
+                            start = s
+                            break
+                    for e in range(int(length-1), 0, -1):
+                        column = alignment[:, e]
+                        if column[0] != "-":
+                            end = e
+                            break
             
+                    p_new_seq = p_new_seq[int(start):int(end)]
+                else: pass
+
                 input_align = SeqIO.parse(output_fasta, "fasta", IUPAC.protein)
                 msa = []
                 for record in input_align:
@@ -175,8 +199,17 @@ class organism:
                 sequence2 = msa[1]
             
                 pair_score = getDistance(sequence1, sequence2, method)
-                distances1.append(pair_score)
-            else: pass
+                value = [pair_score, p_new_seq]
+                new_rec.append(value) 
+            
+            sort = sorted(new_rec, key=lambda new_rec: new_rec[0])
+            new_dist = sort[0][0]
+            new_seq = sort[0][1]
+            distances1.append(new_dist)    
+            output = "./Data/" + id1 + ".fasta"
+            out_fasta = open(output, "a")
+            out_fasta.write("\n" + ">" + p_desc + "\n" + new_seq + "\n")
+            out_fasta.close()
                 
         try:
             remove(pair)
@@ -196,18 +229,22 @@ class organism:
         for entry in self.ord_sequences2:
             p_desc = str(entry[0])
             p_seq = str(entry[1])
-                       
-            pair = "./Data/" + id2 + ".pair"
-            out_pair= open(pair, "w")
+            p_seq = p_seq.rstrip(":")
+            p_seq = p_seq.split(":")
+            new_rec = []
+            for seq in p_seq:
+                p_new_seq = seq           
+                pair = "./Data/" + id2 + ".pair"
+                out_pair= open(pair, "w")
             
-            sequence1 = str("\n" + ">" + q_desc + "\n" + q_seq + "\n")
-            sequence2 = str("\n" + ">" + p_desc + "\n" + p_seq + "\n")
-            out_pair.write(sequence1 + sequence2)
-            out_pair.close()    
+                sequence1 = str("\n" + ">" +q_desc + "\n" + q_seq + "\n")
+                sequence2 = str("\n" + ">" + p_desc + "\n" + p_new_seq + "\n")
+                out_pair.write(sequence1 + sequence2)
+                out_pair.close()    
             
-            output_align = "./Data/" + id2 + "_pair.aln"
-            output_tree = "./Data/" + id2 + "_pair.dnd"
-            clustalw = ClustalwCommandline(infile=pair, 
+                output_align = "./Data/" + id2 + "_pair.aln"
+                output_tree = "./Data/" + id2 + "_pair.dnd"
+                clustalw = ClustalwCommandline(infile=pair, 
                                            outfile=output_align, 
                                            newtree=output_tree, 
                                            align="input", 
@@ -218,33 +255,26 @@ class organism:
                                            pwmatrix="GONNET", 
                                            gapopen=10, 
                                            gapext=0.2) 
-            clustalw()
-            
-            if trim == True:
-                alignment = AlignIO.read(output_align, "clustal")
-                length = alignment.get_alignment_length()
-                for s in range(0,length,1):
-                    column = alignment[:, s]
-                    if column[0] != "-":
-                        start = s
-                        break
-                for e in range(int(length-1), 0, -1):
-                    column = alignment[:, e]
-                    if column[0] != "-":
-                        end = e
-                        break
-            
-                p_new_seq = p_seq[int(start):int(end)]            
-            
-                output = "./Data/" + id2 + ".fasta"
-                out_fasta = open(output, "a")
-                out_fasta.write("\n" + ">" + p_desc + "\n" + p_new_seq + "\n")
-                out_fasta.close()
-            else: pass
-            
-            if method != None:
+                clustalw()
                 output_fasta = "./Data/" + id2 + "_pair.fasta"
                 AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
+                
+                if trim == True:
+                    alignment = AlignIO.read(output_align, "clustal")
+                    length = alignment.get_alignment_length()
+                    for s in range(0,length,1):
+                        column = alignment[:, s]
+                        if column[0] != "-":
+                            start = s
+                            break
+                    for e in range(int(length-1), 0, -1):
+                        column = alignment[:, e]
+                        if column[0] != "-":
+                            end = e
+                            break
+            
+                    p_new_seq = p_new_seq[int(start):int(end)]
+                else: pass
             
                 input_align = SeqIO.parse(output_fasta, "fasta", IUPAC.protein)
                 msa = []
@@ -255,8 +285,17 @@ class organism:
                 sequence2 = msa[1]
             
                 pair_score = getDistance(sequence1, sequence2, method)
-                distances2.append(pair_score)
-            else: pass
+                value = [pair_score, p_new_seq]
+                new_rec.append(value) 
+            
+            sort = sorted(new_rec, key=lambda new_rec: new_rec[0])
+            new_dist = sort[0][0]
+            new_seq = sort[0][1]
+            distances2.append(new_dist)    
+            output = "./Data/" + id2 + ".fasta"
+            out_fasta = open(output, "a")
+            out_fasta.write("\n" + ">" + p_desc + "\n" + new_seq + "\n")
+            out_fasta.close()
                 
         try:
             remove(pair)
@@ -266,15 +305,14 @@ class organism:
         except:
             pass
         
-        if method != None:
-            output = "./Data/matrix.txt" 
-            out_distance = open(output, "w")
-            for i in range(len(distances1)):
-                print >> out_distance, "1" + "\t" + str(i+2) + "\t" + \
+        
+        output = "./Data/" + "matrix.txt" 
+        out_distance = open(output, "w")
+        for i in range(len(distances1)):
+            print >> out_distance, "1" + "\t" + str(i+2) + "\t" + \
                                             str(distances1[i]) + "\t" + \
                                             str(distances2[i])
-            out_distance.close()
-        else: pass
+        out_distance.close()
     
     def getsCorrelation(self, method=None):
         """
