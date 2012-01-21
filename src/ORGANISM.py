@@ -352,8 +352,8 @@ class organism:
                 Ys.append(Y)
             slope = theilsenEstimator(Xs,Ys)
             
-            m = abs(slope)
-            divisor = sqrt(1 + sqrt(m))
+            m = -slope
+            divisor = sqrt(1 + m**2)
             distance = []
             for f in range(len(Xs)):
                 d = abs(m*Xs[f] + Ys[f])/divisor
