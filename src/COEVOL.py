@@ -10,8 +10,8 @@ from src.ALIGN import alignment as class_alignment
 from Parameters import results_histogram, results_heatmap, results_structure
 from Parameters import best_results
 from src.UTILS import aa
-from math import log
-from numpy import mean, zeros
+from math import log, e, factorial
+from numpy import mean, std, zeros, sqrt
 from matplotlib import pyplot
 
 
@@ -20,15 +20,30 @@ class coevolution:
     Main code for coevolution analysis.
     
     Matrix-based Methods:
-    Residue Contact Preferences, Volume Normalized - Glaser et al, 2001.
-    Contact likelihood matrix - Singer et al, 2002.
-    Residue volume, normalized  - Esque et al, 2010
+    * Residue Contact Preferences, Volume Normalized - Glaser et al, 2001.
+    * Contact PDB-derived Likelihood Matrix  - Singer et al, 2002.
+    * Residue-residue volume normalized  - Esque et al, 2010.
     
     Mutual Information based methods:
-    Mutual Information - Martin el al, 2005
-    MI by pair entropy - Martin el al, 2005
-    Row and column weighed MI - Gouveia-Oliveira et al, 2007
-    Contact preferences, volume normalized MIE - unpublished
+    * Mutual Information - Martin el al, 2005.
+    * MI by pair entropy - Martin el al, 2005.
+    * Row and column weighed MI - Gouveia-Oliveira et al, 2007.
+    * Contact preferences, volume normalized MIE - F. Madeira, 2012.
+      (unpublished)
+    
+    Correlation-based methods:
+    * OMES (Observed Minus Expected Squared) - Kass and Horovitz, 2002.
+    * Pearson's correlation - Neher, 1994. (slow)
+    * Spearman's rank correlation (or Gobel method) - Pazos et al, 1997  
+      (Gobel et al, 1994). As on Halperin et al, 2006. (slow)
+    * McBASC (McLachlan Based Substitution Correlation) - Fodor and 
+      Aldrich, 2004. (slow)
+    * Quartets - Galitsky, 2002. As on Halperin et al, 2006. 
+    
+    Perturbation-based methods:
+    * SCA (Statistical Coupling analysis) - Lockless and Ranganathan, 1999.
+      As on Halperin et al, 2006.
+    * ELSC (Explicit Likelihood of Subset Covariation) - Dekker et al, 2004.
     """
     
     def __init__(self, file1, file2, id1, id2, chain1, chain2, 
@@ -174,11 +189,153 @@ class coevolution:
                     for a,b in zip(columns1[i],columns2[j]):
                         if a in aa and b in aa:
                             average.append(float(matchScore(res1, res2, "VOL")))
-                    info[(i,j)] = mean(average)   
+                    info[(i,j)] = mean(average)
+                    
+        elif coevolution == "omes":
+            alignment1 = [e for e in alignment1]
+            columns1 = transpose(alignment1)
+
+            alignment2 = [e for e in alignment2]
+            columns2 = transpose(alignment2)
+            
+            omes = dict()
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    info[(i,j)] = covarianceOMES(columns1[i],columns2[j])
+            max_pos = []
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    max_pos.append(omes[(i,j)])
+            max_val = max(max_pos)
+                    
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    if omes[(i,j)] != 0.0:
+                        info[(i,j)] = omes[(i,j)] * 1.0 / max_val
+                    else:
+                        info[(i,j)] = 0.0
+                    
+        elif coevolution == "pearson":
+            alignment1 = [e for e in alignment1]
+            columns1 = transpose(alignment1)
+
+            alignment2 = [e for e in alignment2]
+            columns2 = transpose(alignment2)
+            
+            N = len(columns1[0])
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    d_matrix1 = twoDimensionalMatrix(columns1[i])
+                    d_matrix2 = twoDimensionalMatrix(columns2[j])
+                    info[(i,j)] = pearsonsCorrelation(d_matrix1, d_matrix2, N)
+                    
+        elif coevolution == "spearman":
+            alignment1 = [e for e in alignment1]
+            columns1 = transpose(alignment1)
+
+            alignment2 = [e for e in alignment2]
+            columns2 = transpose(alignment2)
+            
+            N = len(columns1[0])
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    d_matrix1 = twoDimensionalMatrix(columns1[i])
+                    d_matrix2 = twoDimensionalMatrix(columns2[j])
+                    info[(i,j)] = spearmansCorrelation(d_matrix1, d_matrix2, N)
+                    
+        elif coevolution == "mcbasc":
+            alignment1 = [e for e in alignment1]
+            columns1 = transpose(alignment1)
+
+            alignment2 = [e for e in alignment2]
+            columns2 = transpose(alignment2)
+            
+            N = len(columns1[0])
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    d_matrix1 = twoDimensionalMatrix(columns1[i])
+                    d_matrix2 = twoDimensionalMatrix(columns2[j])
+                    McBASC = pearsonsCorrelation(d_matrix1,d_matrix2, N)
+                    info[(i,j)] = abs(McBASC)
+        
+        elif coevolution == "quartets":
+            alignment1 = [e for e in alignment1]
+            columns1 = transpose(alignment1)
+
+            alignment2 = [e for e in alignment2]
+            columns2 = transpose(alignment2)
+            
+            quartets = dict()
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    quartets[(i,j)] = quartetsCorrelation(columns1[i],columns2[j])
+            
+            max_pos = []
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    max_pos.append(quartets[(i,j)])
+            max_val = max(max_pos)
+                    
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    if quartets[(i,j)] != 0.0:
+                        info[(i,j)] = quartets[(i,j)] * 1.0 / max_val
+                    else:
+                        info[(i,j)] = 0.0
+                        
+        elif coevolution == "sca":
+            alignment1 = [e for e in alignment1]
+            columns1 = transpose(alignment1)
+
+            alignment2 = [e for e in alignment2]
+            columns2 = transpose(alignment2)
+            
+            sca = dict()   
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    sca[(i,j)] = perturbationSCA(columns1[i],columns2[j],\
+                                                  j,columns2)
+            max_pos = []
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    max_pos.append(sca[(i,j)])
+            max_val = max(max_pos)
+                    
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    if sca[(i,j)] != 0.0:
+                        info[(i,j)] = sca[(i,j)] * 1.0 / max_val
+                    else:
+                        info[(i,j)] = 0.0
+                    
+        elif coevolution == "elsc":
+            alignment1 = [e for e in alignment1]
+            columns1 = transpose(alignment1)
+
+            alignment2 = [e for e in alignment2]
+            columns2 = transpose(alignment2)
+             
+            elsc = dict()  
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    elsc[(i,j)] = perturbationELSC(columns1[i],columns2[j],\
+                                                   j,columns2)       
+            max_pos = []
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    max_pos.append(elsc[(i,j)])
+            max_val = max(max_pos)
+                    
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    if elsc[(i,j)] != 0.0:
+                        info[(i,j)] = elsc[(i,j)] * 1.0 / max_val
+                    else:
+                        info[(i,j)] = 0.0               
         else: pass
         
         
-        output = "./Data/" + alignment + "_" + coevolution + ".txt"
+        output = "./Results/" + alignment + "_" + coevolution + ".txt"
         results = open(output, "w")
         for i, j in sorted(info.keys()):
             if protein1 != [] and protein2 != []:
@@ -216,7 +373,7 @@ class coevolution:
         except:
             pass
         
-        input = "./Data/" + alignment + "_" + coevolution + ".txt"
+        input = "./Results/" + alignment + "_" + coevolution + ".txt"
         output = "./Results/" + alignment + "_" + coevolution + "_best.txt"
         bestResults(input, output, best_info, surface1, surface2, interface)
         
@@ -392,6 +549,35 @@ def matchScore(alpha, beta, matrix):
     lut_y = alphabet[beta]
     
     return mapMatrix(matrix)[lut_x][lut_y]
+
+def matchScore2(alpha, beta, matrix):
+    "Matches scores from a matrix - different residue order"
+    
+    alphabet = {}    
+    alphabet["A"] = 0
+    alphabet["R"] = 1
+    alphabet["N"] = 2
+    alphabet["D"] = 3
+    alphabet["C"] = 4
+    alphabet["Q"] = 5
+    alphabet["E"] = 6
+    alphabet["G"] = 7
+    alphabet["H"] = 8
+    alphabet["I"] = 9
+    alphabet["L"] = 10
+    alphabet["K"] = 11
+    alphabet["M"] = 12
+    alphabet["F"] = 13
+    alphabet["P"] = 14
+    alphabet["S"] = 15
+    alphabet["T"] = 16
+    alphabet["W"] = 17
+    alphabet["Y"] = 18
+    alphabet["V"] = 19
+    lut_x = alphabet[alpha]
+    lut_y = alphabet[beta]
+    
+    return mapMatrix(matrix)[lut_x][lut_y]
     
 def mapMatrix(matrix):
     "Maps a matrix of floats"
@@ -406,9 +592,29 @@ def mapMatrix(matrix):
     
     return score_matrix
    
+def twoDimensionalMatrix(column):
+    "For each column in the alignment constructs a two-dimensional matrix"
     
+    two_d = []
+    for i in range(len(column)):
+        for j in range(len(column)):
+            res1 = column[i]
+            res2 = column[j]
+            if res1!="-" and res2!="-" and res1!="B" and res2!="B" \
+            and res1!="X" and res2!="X" and res1!="Z" and res2!="Z":
+                s = float(matchScore2(res1, res2, "MCLACHLAN"))
+                two_d.append(s)
+            else:
+                s = 0.0
+                two_d.append(s)
+                
+    return two_d
+        
 def log20(n):  
     return log(n) * 1.0 / log(20)
+
+def ln(n): 
+    return log(n) * 1.0 / log(e)
 
 def transpose(L):
     R = range(len(L[0]))
@@ -512,50 +718,316 @@ def contactPreferenceMI(mie, res1, res2):
     
     return cpvnmie
 
+def covarianceOMES(column1,column2):
+    """
+    Normalized Covariance analysis; OMES - Observed Minus Expected Squared
+    derived from the covariance method of Kass and Horovitz, 2002
+    """
+ 
+    assert len(column1) == len(column2)
+    
+    L = []
+    Nvalid = []
+    Cxi = []
+    Cyj = []
+    for i,j in zip(column1,column2):
+        if i!="-" and j!="-" and i!="B" and j!="B" \
+        and i!="X" and j!="X" and i!="Z" and j!="Z":
+            value = [i,j]
+            Nvalid.append(value)
+            Cxi.append(i)
+            Cyj.append(j)
+            if value not in L:
+                L.append(value)
+
+    len_Nvalid = len(Nvalid)
+    omes = 0.0
+    for value in L:
+        Nobs = Nvalid.count(value)
+        i = value[0]
+        j = value[1]
+        Ci = Cxi.count(i)
+        Cj = Cyj.count(j)
+        Nex = Ci * Cj / len_Nvalid    
+        top = (Nobs - Nex)**2
+        omes += top * 1.0 / len_Nvalid
+    
+    return omes
+
+def pearsonsCorrelation(d_matrix1,d_matrix2, N):
+    """
+    Pearson's Correlation, correlation coeficient.
+    As on Neher, 1994
+    """
+    
+    assert len(d_matrix1) == len(d_matrix2)
+    
+    sigma_i = std(d_matrix1)
+    Si = []
+    av_Si = mean(d_matrix1)
+    for i in (d_matrix1):
+        Si.append(i - av_Si)
+    
+    sigma_j = std(d_matrix2)
+    Sj = []
+    av_Sj = mean(d_matrix1)
+    for j in (d_matrix2):
+        Sj.append(j - av_Sj)
+    
+    top = 0.0
+    for i,j in zip(Si,Sj):
+        top += float(i * j)
+
+    bottom = sigma_i * sigma_j
+    if bottom == 0.0:
+        pearson = 0.0
+    else:
+        pearson = (1.0 / N**2)*(top/bottom)
+    
+    return pearson
+
+def spearmansCorrelation(d_matrix1,d_matrix2, N):
+    """
+    Spearman's rank Correlation (Gobel method), Pazos et al, 1997
+    and Gobel et al, 1994. 
+    As on Halperin et al, 2006.
+    """
+    
+    assert len(d_matrix1) == len(d_matrix2)
+    
+    match = 0.0
+    for k,l in zip(d_matrix1,d_matrix2):
+        if k==l:
+            match += 1.0
+    length = len(d_matrix1)
+    Wkl = match * 1.0 / length
+    
+    sigma_i = std(d_matrix1)
+    Si = []
+    av_Si = mean(d_matrix1)
+    for i in (d_matrix1):
+        Si.append(i - av_Si)
+    
+    sigma_j = std(d_matrix2)
+    Sj = []
+    av_Sj = mean(d_matrix1)
+    for j in (d_matrix2):
+        Sj.append(j - av_Sj)
+    
+    top = 0.0
+    for i,j in zip(Si,Sj):
+        top += float(i * j * Wkl)
+
+    bottom = sigma_i * sigma_j
+    if bottom == 0.0:
+        spearman = 0.0
+    else:
+        spearman = (1.0 / N**2)*(top/bottom)
+    
+    return spearman
+
+
+def quartetsCorrelation(column1,column2):
+    """
+    NOrmalized Quartets correlation method by Galitsky, 2002.
+    As on Halperin et al, 2006.  
+    """
+ 
+    assert len(column1) == len(column2)
+    
+    quartets = 0.0
+    x = column1
+    y = column2
+    pairs = []
+    for i,j in zip(x,y):
+        value = [i,j]
+        pairs.append(value)
+        
+    for i,j in zip(x,y):
+        if i!="-" and j!="-" and i!="B" and j!="B" \
+        and i!="X" and j!="X" and i!="Z" and j!="Z":
+            Pix = x.count(i) * 1.0 / len(x)
+            Piy = y.count(i) * 1.0 / len(y)
+            Pjx = x.count(j) * 1.0 / len(x)
+            Pjy = y.count(j) * 1.0 / len(y)
+            val = [i,j]
+            Dmin = value.count(val)
+            Dif = len(value) - Dmin
+            DQmin = Dmin * 1.0 / Dif
+
+            try :
+                if ((Pix*Pjy > Piy*Pjx) and ((Pix > Dmin) or (Pjy > Dmin)) or\
+                    (Pix*Pjy < Piy*Pjx) and ((Piy > Dmin) or (Pjx > Dmin)))\
+                    and\
+                   (((Pix*Pjy) * 1.0 / (Piy*Pjx) > DQmin) or\
+                    ((Piy*Pjx) * 1.0 / (Pix*Pjy) > DQmin)):
+                    quartets += 1.0
+            except:
+                quartets += 0
+    return quartets
+
+def perturbationSCA(column1, column2, j, columns2):
+    """
+    Normalized SCA - Statistical Coupling analysis, Lockless and 
+    Ranganathan, 1999. As on Halperin et al, 2006.
+    """
+    
+    assert len(column1) == len(column2)
+    
+    new_columns2 = subAlignment(column2, columns2)
+    x = column1
+    y = new_columns2[j]
+    
+    inside = 0.0
+    for i in x:
+        if i!="-" and i!="B" and i!="X" and i!="Z":
+            Pix = x.count(i) * 1.0 / len(x)
+            Pixj = y.count(i) * 1.0 / len(y)
+            if Pixj != 0.0:
+                inside += (ln(Pixj) - Pix)**2
+            
+    sca = sqrt(inside)
+    return sca
+
+def perturbationELSC(column1, column2, j, columns2):
+    """
+    Normalized ELSC - Explicit Likelihood of Subset Covariation, 
+    Dekker et al, 2004.
+    """
+    
+    assert len(column1) == len(column2)
+    
+    new_columns2 = subAlignment2(column1, column2, columns2)
+    x = column1
+    y1= column2
+    y2 = new_columns2[j]
+    
+    
+    comb_x = []
+    comb_all = []
+    for i in x:
+        if i!="-" and i!="B" and i!="X" and i!="Z":
+            Nxj = y1.count(i)
+            nxj = y2.count(i)
+            Nall = len(y1)
+            nall = len(y2)
+            mxj = int(round((Nxj * 1.0 / Nall) * nall))
+            
+            comb_x.append(factorial(Nxj) * 1.0 / factorial(nxj)* factorial(Nxj - nxj))
+            comb_all.append(factorial(Nxj) * 1.0 / factorial(mxj)* factorial(Nxj - mxj))      
+    
+    product = 1.0
+    for k,l in zip(comb_x, comb_all):    
+        product *= (k * 1.0 / l) 
+        
+    if product != 0.0:
+        elsc = -ln(product)
+    else: 
+        elsc = 0.0
+    
+    return elsc
+
+def subAlignment (column, columns):
+    "Creates a sub_alignment based on the most frequent AA in column"
+    
+    pD = []
+    y = column
+    for j in range(len(y)):
+        if y[j]!="-" and y[j]!="B" and y[j]!="X" and y[j]!="Z":
+            freq = y.count(y[j])
+            aa = y[j]
+            value = [aa, freq]
+            pD.append(value)
+    
+    sort = sorted(pD, key=lambda pD: pD[1])
+    aa_j = sort[0][0]
+    
+    col_positions = []
+    pos = -1
+    for j in y:
+        pos += 1
+        if j == aa_j:
+            col_positions.append(pos)
+    
+    sub_align = []
+    for col in columns:
+        sub_col = []
+        for pos in col_positions:
+            sub_col.append(col[pos])
+        sub_align.append(sub_col)
+    return sub_align
+
+def subAlignment2 (column1, column2, columns):
+    "Creates a sub_alignment based on AA identity of column1"
+    
+    x = column1
+    y = column2
+    
+    list_i = []
+    for i in x:
+        if i!="-" and i!="B" and i!="X" and i!="Z":
+            if i not in list_i:
+                list_i.append(i)
+    
+    col_positions = []
+    pos = -1
+    for j in y:
+        pos += 1
+        if j in list_i:
+            col_positions.append(pos)
+    
+    sub_align = []
+    for col in columns:
+        sub_col = []
+        for pos in col_positions:
+            sub_col.append(col[pos])
+        sub_align.append(sub_col)
+    return sub_align
+  
 def bestResults(input, output, best_info, surface1, surface2, interface):
-        "Creates a new list of best coevolution scores"
-        
-        input_results = open(input, "r")
-        results = input_results.readlines()
-        input_results.close()
-        
-        all = []
-        for line in results:
-            if line == "\n": pass
-            else: 
-                l = line.rstrip("\n")
-                l = l.split()
-                res1 = int(l[0])
-                res2 = int(l[1])
-                mi = float(l[2])
-                if res1 in surface1 and res2 in surface2:
-                    value = [res1, res2, mi]
-                    all.append(value)
-                elif res1 in surface1 and res2 in surface1:
-                    value = [res1, res2, mi]
-                    all.append(value)
-                else:
-                    value = [res1, res2, mi]
-                    all.append(value)
-        
-        a = all
-        sort = sorted(a, key=lambda a: a[2])
-        length = len(sort)
-        position = length - best_info
-        threshold = sort[position]
-        
-        out_best = open(output, "w")
-        for line in all:
-            res1 = line[0]
-            res2 = line[1]
-            mi = float(line[2])
-            value = [res1, res2]
-            if mi >= threshold[2]:
-                if value in interface:
-                    print >> out_best, res1, res2, mi, "Interface contact"
-                else:
-                    print >> out_best, res1, res2, mi
-        out_best.close()
+    "Creates a new list of best coevolution scores"
+    
+    input_results = open(input, "r")
+    results = input_results.readlines()
+    input_results.close()
+    
+    all = []
+    for line in results:
+        if line == "\n": pass
+        else: 
+            l = line.rstrip("\n")
+            l = l.split()
+            res1 = int(l[0])
+            res2 = int(l[1])
+            mi = float(l[2])
+            if res1 in surface1 and res2 in surface2:
+                value = [res1, res2, mi]
+                all.append(value)
+            elif res1 in surface1 and res2 in surface1:
+                value = [res1, res2, mi]
+                all.append(value)
+            else:
+                value = [res1, res2, mi]
+                all.append(value)
+    
+    a = all
+    sort = sorted(a, key=lambda a: a[2])
+    length = len(sort)
+    position = length - best_info
+    threshold = sort[position]
+    
+    out_best = open(output, "w")
+    for line in all:
+        res1 = line[0]
+        res2 = line[1]
+        mi = float(line[2])
+        value = [res1, res2]
+        if mi >= threshold[2]:
+            if value in interface:
+                print >> out_best, res1, res2, mi, "Interface contact"
+            else:
+                print >> out_best, res1, res2, mi
+    out_best.close()
 
 def drawHistogram(input, output):
     "Creates a histogram of coevolution scores"  

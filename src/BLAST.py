@@ -83,7 +83,7 @@ class psiblast:
         except:
             raise StandardError, "%s - Invalid xml or not found" %(input)
 
-    def sequencesXML(self, id):
+    def sequencesXML(self, id, psiblast):
         "Extracts records from xml and writes FASTA (full-length) sequences"
         
         # edit psiblast_identity and psiblast_coverage at Parameters.py

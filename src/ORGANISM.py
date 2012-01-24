@@ -24,7 +24,7 @@ class organism:
     p-distance - Jukes and Cantor, 1969
     Jukes-Cantor - Jukes and Cantor, 1969
     Kimura Distance - Kimura, 1983
-    Alignment score - ??
+    Alignment score - Dayhoff et al, 1978 
     """
     def __init__(self, id1, id2, psiblast):
         self.id1 = str(id1)

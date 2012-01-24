@@ -29,7 +29,9 @@ def printUsage():
                   local database)  
     alignment     -clustalw, -muscle or -mafft (MUSCLE and MAFFT 
                   are optional)
-    coevolution   -mi, -mie, -rcwmi,-cpvnmie, -cpvn, -clm or -vol
+    coevolution   -mi, -mie, -rcwmi,-cpvnmie, -cpvn, -clm, -vol
+                  -omes, -pearson, -spearman, -mcbasc, -quartets,
+                  -sca or -elsc
     help          -h or -help
                  
     Check the README.txt for further details.
@@ -46,7 +48,7 @@ def pycoevolRun():
     main.alignmentSripts()
     main.coevolutionSripts()
     main.infoScripts()
-    print "Analysis complet!!"
+    print "Analysis complete!"
     
         
 def checkArguments():
@@ -75,9 +77,14 @@ def checkArguments():
     
     if coevolution != 'mi' and coevolution != 'mie' and \
     coevolution != 'rcwmi' and coevolution != 'cpvnmie' and \
-    coevolution != 'cpvn' and coevolution != 'clm' and coevolution != 'vol':
+    coevolution != 'cpvn' and coevolution != 'clm' and \
+    coevolution != 'vol' and coevolution != 'omes' and \
+    coevolution != 'pearson' and coevolution != 'spearman' and \
+    coevolution != 'mcbasc' and coevolution != 'quartets' and \
+    coevolution != 'sca' and coevolution != 'elsc':
         raise StandardError, "ERROR: Coevultion Measure: Type '–mi', '–mie', \
-        '–rcwmi', '–cpvnmie', '–cpvn', '–clm' or '–vol'"
+        '–rcwmi', '–cpvnmie', '–cpvn', '–clm', '–vol', '-omes', 'pearson', \
+        'spearman', 'mcbasc', 'quartets', 'sca' or 'elsc'"
 
 def checkDependencies():
     try: 
