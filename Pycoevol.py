@@ -25,8 +25,8 @@ def printUsage():
                   chain designator                  
     input2        -sequence2.fasta or -pdb2.pdb:B, where B is the 
                   chain designator
-    psiblast      -internet or -local (needs NCBI's PSIBLAST and 
-                  local database)  
+    psiblast      -internet or -local (NCBI's PSIBLAST and local
+                  database are optional)  
     alignment     -clustalw, -muscle or -mafft (MUSCLE and MAFFT 
                   are optional)
     coevolution   -mi, -mie, -rcwmi,-cpvnmie, -cpvn, -clm, -vol
@@ -111,7 +111,6 @@ def addtoPATH():
     sys.path.append("./src/tools/blast+/db")
     sys.path.append("./src/tools/clustalw")
     sys.path.append("./src/tools/mafft")
-	sys.path.append("./src/tools/mafft/bin/")
     sys.path.append("./src/tools/muscle")
     sys.path.append("./src/tools/phylip")
     
