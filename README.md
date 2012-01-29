@@ -1,7 +1,7 @@
 ﻿PYCOEVOL
 ========
 
-PYCOEVOL: A Python workflow to study protein-protein coevolution and interaction
+A Python workflow to study protein-protein coevolution and interaction
 
 ##Disclaimer 
 
@@ -58,7 +58,7 @@ The processed files are written in the ./Pycoevol/Data folder and
 output results are written in the ./Pycoevol/Results folder.
 Make sure you insert input files in the ./Pycoevol/Data folder.
 
-**Coevolution measures**
+**Coevolution measures:**
 
 * Mutual Information (mi) [Martin et al, 2005]
 * MI by pair Entropy (mie) [Martin et al, 2005]
@@ -75,7 +75,7 @@ Make sure you insert input files in the ./Pycoevol/Data folder.
 * Statistical Coupling Analysis (sca) [Lockless and Ranganathan, 1999]
 * Explicit Likelihood of Subset Covariation (elsc) [Dekker et al, 2004]
 
-**Pairwise distance measures**
+**Pairwise distance measures:**
 
 * p-distance [Jukes and Cantor, 1969]
 * Jukes-Cantor [Jukes and Cantor, 1969]
