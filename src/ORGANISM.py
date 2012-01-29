@@ -24,7 +24,7 @@ class organism:
     p-distance - Jukes and Cantor, 1969
     Jukes-Cantor - Jukes and Cantor, 1969
     Kimura Distance - Kimura, 1983
-    Alignment score - Dayhoff et al, 1978 
+    Alignment score - based on Dayhoff et al, 1978 
     """
     def __init__(self, id1, id2, psiblast):
         self.id1 = str(id1)
@@ -473,7 +473,7 @@ def theilsenEstimator(Xs,Ys):
     slope = mean(slopes)
     return slope
         
-def matchScore(alpha, beta, matrix):
+def matchScore(alpha, beta, score_matrix):
     "Matches scores from a matrix"
     
     alphabet = {}    
@@ -504,7 +504,7 @@ def matchScore(alpha, beta, matrix):
     lut_x = alphabet[alpha]
     lut_y = alphabet[beta]
     
-    return mapMatrix(matrix)[lut_x][lut_y]
+    return score_matrix[lut_x][lut_y]
     
 def mapMatrix(matrix):
     "Maps a matrix of floats"
@@ -546,7 +546,8 @@ def getDistance(sequence1, sequence2, method):
     elif method == "kimura":
         distance = kimuraDistance(sequence1,sequence2)
     elif method == "alignscore":
-        distance = alignmentScore(sequence1,sequence2)
+        score_matrix = mapMatrix("BLOSUM62")
+        distance = alignmentScore(sequence1,sequence2, score_matrix)
     else: 
         raise StandardError, "%s - Invalid method for distance calculation" %(method)  
     return distance
@@ -609,7 +610,7 @@ def kimuraDistance(sequence1,sequence2):
     
     return score
 
-def alignmentScore(sequence1,sequence2):
+def alignmentScore(sequence1,sequence2, score_matrix):
     """
     Distance (d) between two sequences (1, 2) is computed from 
     the pairwise alignment score between the two sequences (score12), 
@@ -625,7 +626,7 @@ def alignmentScore(sequence1,sequence2):
     for i in sequence1:
         for j in sequence2:
             if i != "-" or j != "-":
-                score12 += float(matchScore(i, j, "BLOSUM62"))
+                score12 += float(matchScore(i, j, score_matrix))
             else: pass
             
     score11 = 0     

@@ -111,6 +111,7 @@ def addtoPATH():
     sys.path.append("./src/tools/blast+/db")
     sys.path.append("./src/tools/clustalw")
     sys.path.append("./src/tools/mafft")
+	sys.path.append("./src/tools/mafft/bin/")
     sys.path.append("./src/tools/muscle")
     sys.path.append("./src/tools/phylip")
     

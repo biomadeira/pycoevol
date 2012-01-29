@@ -22,7 +22,7 @@ class coevolution:
     Matrix-based Methods:
     * Residue Contact Preferences, Volume Normalized - Glaser et al, 2001.
     * Contact PDB-derived Likelihood Matrix  - Singer et al, 2002.
-    * Residue-residue volume normalized  - Esque et al, 2010.
+    * Residue-residue volume normalized  - based on Esque et al, 2010.
     
     Mutual Information based methods:
     * Mutual Information - Martin el al, 2005.
@@ -201,7 +201,7 @@ class coevolution:
             omes = dict()
             for i in range(len(columns1)):
                 for j in range(len(columns2)):
-                    info[(i,j)] = covarianceOMES(columns1[i],columns2[j])
+                    omes[(i,j)] = covarianceOMES(columns1[i],columns2[j])
             max_pos = []
             for i in range(len(columns1)):
                 for j in range(len(columns2)):
@@ -222,11 +222,12 @@ class coevolution:
             alignment2 = [e for e in alignment2]
             columns2 = transpose(alignment2)
             
+            score_matrix = mapMatrix("MCLACHLAN")
             N = len(columns1[0])
             for i in range(len(columns1)):
                 for j in range(len(columns2)):
-                    d_matrix1 = twoDimensionalMatrix(columns1[i])
-                    d_matrix2 = twoDimensionalMatrix(columns2[j])
+                    d_matrix1 = twoDimensionalMatrix(columns1[i], score_matrix)
+                    d_matrix2 = twoDimensionalMatrix(columns2[j], score_matrix)
                     info[(i,j)] = pearsonsCorrelation(d_matrix1, d_matrix2, N)
                     
         elif coevolution == "spearman":
@@ -236,11 +237,12 @@ class coevolution:
             alignment2 = [e for e in alignment2]
             columns2 = transpose(alignment2)
             
+            score_matrix = mapMatrix("MCLACHLAN")
             N = len(columns1[0])
             for i in range(len(columns1)):
                 for j in range(len(columns2)):
-                    d_matrix1 = twoDimensionalMatrix(columns1[i])
-                    d_matrix2 = twoDimensionalMatrix(columns2[j])
+                    d_matrix1 = twoDimensionalMatrix(columns1[i], score_matrix)
+                    d_matrix2 = twoDimensionalMatrix(columns2[j], score_matrix)
                     info[(i,j)] = spearmansCorrelation(d_matrix1, d_matrix2, N)
                     
         elif coevolution == "mcbasc":
@@ -250,11 +252,12 @@ class coevolution:
             alignment2 = [e for e in alignment2]
             columns2 = transpose(alignment2)
             
+            score_matrix = mapMatrix("MCLACHLAN")
             N = len(columns1[0])
             for i in range(len(columns1)):
                 for j in range(len(columns2)):
-                    d_matrix1 = twoDimensionalMatrix(columns1[i])
-                    d_matrix2 = twoDimensionalMatrix(columns2[j])
+                    d_matrix1 = twoDimensionalMatrix(columns1[i], score_matrix)
+                    d_matrix2 = twoDimensionalMatrix(columns2[j], score_matrix)
                     McBASC = pearsonsCorrelation(d_matrix1,d_matrix2, N)
                     info[(i,j)] = abs(McBASC)
         
@@ -550,7 +553,7 @@ def matchScore(alpha, beta, matrix):
     
     return mapMatrix(matrix)[lut_x][lut_y]
 
-def matchScore2(alpha, beta, matrix):
+def matchScore2(alpha, beta, score_matrix):
     "Matches scores from a matrix - different residue order"
     
     alphabet = {}    
@@ -577,7 +580,7 @@ def matchScore2(alpha, beta, matrix):
     lut_x = alphabet[alpha]
     lut_y = alphabet[beta]
     
-    return mapMatrix(matrix)[lut_x][lut_y]
+    return score_matrix[lut_x][lut_y]
     
 def mapMatrix(matrix):
     "Maps a matrix of floats"
@@ -592,7 +595,7 @@ def mapMatrix(matrix):
     
     return score_matrix
    
-def twoDimensionalMatrix(column):
+def twoDimensionalMatrix(column, score_matrix):
     "For each column in the alignment constructs a two-dimensional matrix"
     
     two_d = []
@@ -602,7 +605,7 @@ def twoDimensionalMatrix(column):
             res2 = column[j]
             if res1!="-" and res2!="-" and res1!="B" and res2!="B" \
             and res1!="X" and res2!="X" and res1!="Z" and res2!="Z":
-                s = float(matchScore2(res1, res2, "MCLACHLAN"))
+                s = float(matchScore2(res1, res2, score_matrix))
                 two_d.append(s)
             else:
                 s = 0.0
@@ -912,9 +915,11 @@ def perturbationELSC(column1, column2, j, columns2):
             Nall = len(y1)
             nall = len(y2)
             mxj = int(round((Nxj * 1.0 / Nall) * nall))
-            
-            comb_x.append(factorial(Nxj) * 1.0 / factorial(nxj)* factorial(Nxj - nxj))
-            comb_all.append(factorial(Nxj) * 1.0 / factorial(mxj)* factorial(Nxj - mxj))      
+            top = long(factorial(Nxj))
+            bot1 = factorial(nxj)* factorial(Nxj - nxj)
+            bot2 = factorial(mxj)* factorial(Nxj - mxj)
+            comb_x.append(top / bot1)
+            comb_all.append(top / bot2)          
     
     product = 1.0
     for k,l in zip(comb_x, comb_all):    
@@ -951,6 +956,7 @@ def subAlignment (column, columns):
     
     sub_align = []
     for col in columns:
+        print col
         sub_col = []
         for pos in col_positions:
             sub_col.append(col[pos])
