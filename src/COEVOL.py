@@ -25,24 +25,23 @@ class coevolution:
     * Residue-residue volume normalized  - based on Esque et al, 2010.
     
     Mutual Information based methods:
-    * Mutual Information - Martin el al, 2005.
+    * Mutual Information - Gloor el al, 2005.
     * MI by pair entropy - Martin el al, 2005.
     * Row and column weighed MI - Gouveia-Oliveira et al, 2007.
     * Contact preferences, volume normalized MIE - F. Madeira, 2012.
-      (unpublished)
+    (unpublished)
     
     Correlation-based methods:
     * OMES (Observed Minus Expected Squared) - Kass and Horovitz, 2002.
-    * Pearson's correlation - Neher, 1994. (slow)
-    * Spearman's rank correlation (or Gobel method) - Pazos et al, 1997  
-      (Gobel et al, 1994). As on Halperin et al, 2006. (slow)
+    * Pearson's correlation - Gobel et al, 1994. (slow)
+    * Spearman's rank correlation - Pazos et al, 1997. (slow)
     * McBASC (McLachlan Based Substitution Correlation) - Fodor and 
-      Aldrich, 2004. (slow)
-    * Quartets - Galitsky, 2002. As on Halperin et al, 2006. 
+    Aldrich, 2004. (slow)
+    * Quartets - Galitsky, 2002. 
     
     Perturbation-based methods:
     * SCA (Statistical Coupling analysis) - Lockless and Ranganathan, 1999.
-      As on Halperin et al, 2006.
+    As on Halperin et al, 2006.
     * ELSC (Explicit Likelihood of Subset Covariation) - Dekker et al, 2004.
     """
     
@@ -238,12 +237,26 @@ class coevolution:
             columns2 = transpose(alignment2)
             
             score_matrix = mapMatrix("MCLACHLAN")
+            spearman = dict()
             N = len(columns1[0])
             for i in range(len(columns1)):
                 for j in range(len(columns2)):
                     d_matrix1 = twoDimensionalMatrix(columns1[i], score_matrix)
                     d_matrix2 = twoDimensionalMatrix(columns2[j], score_matrix)
-                    info[(i,j)] = spearmansCorrelation(d_matrix1, d_matrix2, N)
+                    spearman[(i,j)] = spearmansCorrelation(d_matrix1, d_matrix2, N)
+            
+            max_pos = []
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    max_pos.append(spearman[(i,j)])
+            max_val = max(max_pos)
+                    
+            for i in range(len(columns1)):
+                for j in range(len(columns2)):
+                    if spearman[(i,j)] != 0.0:
+                        info[(i,j)] = spearman[(i,j)] * 1.0 / max_val
+                    else:
+                        info[(i,j)] = 0.0
                     
         elif coevolution == "mcbasc":
             alignment1 = [e for e in alignment1]
@@ -258,8 +271,8 @@ class coevolution:
                 for j in range(len(columns2)):
                     d_matrix1 = twoDimensionalMatrix(columns1[i], score_matrix)
                     d_matrix2 = twoDimensionalMatrix(columns2[j], score_matrix)
-                    McBASC = pearsonsCorrelation(d_matrix1,d_matrix2, N)
-                    info[(i,j)] = abs(McBASC)
+                    info[(i,j)] = mcbascCorrelation(d_matrix1,d_matrix2, N)
+                     
         
         elif coevolution == "quartets":
             alignment1 = [e for e in alignment1]
@@ -603,8 +616,7 @@ def twoDimensionalMatrix(column, score_matrix):
         for j in range(len(column)):
             res1 = column[i]
             res2 = column[j]
-            if res1!="-" and res2!="-" and res1!="B" and res2!="B" \
-            and res1!="X" and res2!="X" and res1!="Z" and res2!="Z":
+            if res1 in aa and res2 in aa:
                 s = float(matchScore2(res1, res2, score_matrix))
                 two_d.append(s)
             else:
@@ -642,7 +654,7 @@ def probabilityDict(columns):
 def mutualInformation(i, j, cols1, cols2, pD1, pD2):
     """
     Mutual informaton for protein coevolution as by
-    Martin et al, 2005. MI(X,Y) = H(X) + H(Y) - H(X,Y)
+    Gloor et al, 2005. MI(X,Y) = H(X) + H(Y) - H(X,Y)
     MI(X,Y) = SUMSUM P(x,y).log20(P(x,y)/P(x).P(y))
     """
     
@@ -734,8 +746,7 @@ def covarianceOMES(column1,column2):
     Cxi = []
     Cyj = []
     for i,j in zip(column1,column2):
-        if i!="-" and j!="-" and i!="B" and j!="B" \
-        and i!="X" and j!="X" and i!="Z" and j!="Z":
+        if i in aa and j in aa:
             value = [i,j]
             Nvalid.append(value)
             Cxi.append(i)
@@ -759,8 +770,100 @@ def covarianceOMES(column1,column2):
 
 def pearsonsCorrelation(d_matrix1,d_matrix2, N):
     """
-    Pearson's Correlation, correlation coeficient.
-    As on Neher, 1994
+    Pearson's Correlation (Gobel method) - Gobel et al, 1994.
+    """
+    
+    assert len(d_matrix1) == len(d_matrix2)
+    
+    no_match = 0.0
+    for k,l in zip(d_matrix1,d_matrix2):
+        if k!=l:
+            no_match += 1.0
+    length = len(d_matrix1)
+    Wkl = no_match * 1.0 / length
+    
+    sigma_i = std(d_matrix1)
+    Si = []
+    av_Si = mean(d_matrix1)
+    for i in (d_matrix1):
+        Si.append(i - av_Si)
+    
+    sigma_j = std(d_matrix2)
+    Sj = []
+    av_Sj = mean(d_matrix1)
+    for j in (d_matrix2):
+        Sj.append(j - av_Sj)
+    
+    top = 0.0
+    for i,j in zip(Si,Sj):
+        top += float(i * j * Wkl)
+
+    bottom = sigma_i * sigma_j
+    if bottom == 0.0:
+        pearson = 0.0
+    else:
+        pearson = (1.0 / N**2)*(top/bottom)
+    
+    return pearson
+
+def spearmansCorrelation(d_matrix1,d_matrix2, N):
+    """
+    Spearman's rank Correlation - Pazos et al, 1997. 
+    """
+    
+    assert len(d_matrix1) == len(d_matrix2)
+    
+    rank_matrix1 = []
+    rank_matrix2 = []
+    rank_temp1 = []
+    rank_temp2 = []
+    for k,l in zip(d_matrix1,d_matrix2):
+        if k not in rank_temp1:
+            rank_temp1.append(k)
+            cnt = d_matrix1.count(k)
+            rank = cnt * 1.0 / len(d_matrix1)
+            rank_matrix1.append(rank)
+        if l not in rank_temp2:
+            rank_temp2.append(l)
+            cnt = d_matrix2.count(l)
+            rank = cnt * 1.0 / len(d_matrix2)
+            rank_matrix2.append(rank)
+    
+    no_match = 0.0
+    for k,l in zip(d_matrix1,d_matrix2):
+        if k!=l:
+            no_match += 1.0
+    length = len(d_matrix1)
+    Wkl = no_match * 1.0 / length
+    
+    sigma_i = std(d_matrix1)
+    Si = []
+    av_Si = mean(d_matrix1)
+    for i in (rank_matrix1):
+        Si.append(i - av_Si)
+    
+    sigma_j = std(d_matrix2)
+    Sj = []
+    av_Sj = mean(d_matrix1)
+    for j in (rank_matrix2):
+        Sj.append(j - av_Sj)
+    
+    top = 0.0
+    for i,j in zip(Si,Sj):
+        top += float(i * j * Wkl)
+
+    bottom = sigma_i * sigma_j
+    if bottom == 0.0:
+        spearman = 0.0
+    else:
+        spearman = (1.0 / N**2)*(top/bottom)
+    
+    return spearman
+
+def mcbascCorrelation(d_matrix1,d_matrix2, N):
+    """
+    McBASC - McLachlan Based Substitution Correlation.
+    Fodor and Aldrich, 2004.
     """
     
     assert len(d_matrix1) == len(d_matrix2)
@@ -783,57 +886,16 @@ def pearsonsCorrelation(d_matrix1,d_matrix2, N):
 
     bottom = sigma_i * sigma_j
     if bottom == 0.0:
-        pearson = 0.0
+        mcbasc = 0.0
     else:
-        pearson = (1.0 / N**2)*(top/bottom)
+        mcbasc = abs((1.0 / N**2)*(top/bottom))
     
-    return pearson
-
-def spearmansCorrelation(d_matrix1,d_matrix2, N):
-    """
-    Spearman's rank Correlation (Gobel method), Pazos et al, 1997
-    and Gobel et al, 1994. 
-    As on Halperin et al, 2006.
-    """
-    
-    assert len(d_matrix1) == len(d_matrix2)
-    
-    match = 0.0
-    for k,l in zip(d_matrix1,d_matrix2):
-        if k==l:
-            match += 1.0
-    length = len(d_matrix1)
-    Wkl = match * 1.0 / length
-    
-    sigma_i = std(d_matrix1)
-    Si = []
-    av_Si = mean(d_matrix1)
-    for i in (d_matrix1):
-        Si.append(i - av_Si)
-    
-    sigma_j = std(d_matrix2)
-    Sj = []
-    av_Sj = mean(d_matrix1)
-    for j in (d_matrix2):
-        Sj.append(j - av_Sj)
-    
-    top = 0.0
-    for i,j in zip(Si,Sj):
-        top += float(i * j * Wkl)
-
-    bottom = sigma_i * sigma_j
-    if bottom == 0.0:
-        spearman = 0.0
-    else:
-        spearman = (1.0 / N**2)*(top/bottom)
-    
-    return spearman
+    return mcbasc
 
 
 def quartetsCorrelation(column1,column2):
     """
-    NOrmalized Quartets correlation method by Galitsky, 2002.
-    As on Halperin et al, 2006.  
+    Normalized Quartets correlation method by Galitsky, 2002.
     """
  
     assert len(column1) == len(column2)
@@ -847,15 +909,14 @@ def quartetsCorrelation(column1,column2):
         pairs.append(value)
         
     for i,j in zip(x,y):
-        if i!="-" and j!="-" and i!="B" and j!="B" \
-        and i!="X" and j!="X" and i!="Z" and j!="Z":
+        if i in aa and j in aa:
             Pix = x.count(i) * 1.0 / len(x)
             Piy = y.count(i) * 1.0 / len(y)
             Pjx = x.count(j) * 1.0 / len(x)
             Pjy = y.count(j) * 1.0 / len(y)
             val = [i,j]
-            Dmin = value.count(val)
-            Dif = len(value) - Dmin
+            Dmin = pairs.count(val)
+            Dif = len(pairs) - Dmin
             DQmin = Dmin * 1.0 / Dif
 
             try :
@@ -883,7 +944,7 @@ def perturbationSCA(column1, column2, j, columns2):
     
     inside = 0.0
     for i in x:
-        if i!="-" and i!="B" and i!="X" and i!="Z":
+        if i in aa:
             Pix = x.count(i) * 1.0 / len(x)
             Pixj = y.count(i) * 1.0 / len(y)
             if Pixj != 0.0:
@@ -909,7 +970,7 @@ def perturbationELSC(column1, column2, j, columns2):
     comb_x = []
     comb_all = []
     for i in x:
-        if i!="-" and i!="B" and i!="X" and i!="Z":
+        if i in aa:
             Nxj = y1.count(i)
             nxj = y2.count(i)
             Nall = len(y1)
@@ -938,7 +999,7 @@ def subAlignment (column, columns):
     pD = []
     y = column
     for j in range(len(y)):
-        if y[j]!="-" and y[j]!="B" and y[j]!="X" and y[j]!="Z":
+        if y[j] in aa:
             freq = y.count(y[j])
             aa = y[j]
             value = [aa, freq]
@@ -971,7 +1032,7 @@ def subAlignment2 (column1, column2, columns):
     
     list_i = []
     for i in x:
-        if i!="-" and i!="B" and i!="X" and i!="Z":
+        if i in aa:
             if i not in list_i:
                 list_i.append(i)
     

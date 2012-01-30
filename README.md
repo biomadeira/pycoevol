@@ -60,16 +60,16 @@ Make sure you insert input files in the ./Pycoevol/Data folder.
 
 **Coevolution measures:**
 
-* Mutual Information (mi) [Martin et al, 2005]
+* Mutual Information (mi) [Gloor et al, 2005]
 * MI by pair Entropy (mie) [Martin et al, 2005]
 * Row and Column Weighed MI (rcwmi) [Gouveia-Oliveira et al, 2007]
 * Contact Preferences, Volume Normalized MIE (cpvnmie) [F. Madeira, 2012 - unpublished]
 * Contact Preferences, Volume Normalized (cpvn) [Glaser et al, 2001]
 * Contact PDB-derived Likelihood Matrix (clm) [Singer et al, 2002]
 * Residue-residue Volume Normalized (vol) [based on Esque et al, 2010]
-* Pearson’s correlation (pearson) [Neher, 1994]
 * Observed Minus Expected Squared  (omes) [Kass and Horovitz, 2002]
-* Spearman’s rank correlation (spearman) [Göbel et al, 1994]
+* Pearson’s correlation (pearson) [Göbel et al, 1994]
+* Spearman’s rank correlation (spearman) [Pazos et al, 1997]
 * McLachlan Based Substitution Correlation (mcbasc) [Fodor and Aldrich, 2004]
 * Quartets (quartets)[Galitsky, 2002]
 * Statistical Coupling Analysis (sca) [Lockless and Ranganathan, 1999]

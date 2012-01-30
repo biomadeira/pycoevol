@@ -7,6 +7,7 @@
 
 from Parameters import pairwise_distance, pairwise_trim
 from Parameters import correlation_method
+from src.UTILS import aa
 from os import remove, system, chdir
 from numpy import mean, sqrt, log, median
 from math import e
@@ -625,7 +626,7 @@ def alignmentScore(sequence1,sequence2, score_matrix):
     score12 = 0     
     for i in sequence1:
         for j in sequence2:
-            if i != "-" or j != "-":
+            if i in aa and j in aa:
                 score12 += float(matchScore(i, j, score_matrix))
             else: pass
             
