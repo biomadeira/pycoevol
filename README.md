@@ -71,7 +71,7 @@ Make sure you insert input files in the ./Pycoevol/Data folder.
 * Pearson’s correlation (pearson) [Göbel et al, 1994]
 * Spearman’s rank correlation (spearman) [Pazos et al, 1997]
 * McLachlan Based Substitution Correlation (mcbasc) [Fodor and Aldrich, 2004]
-* Quartets (quartets)[Galitsky, 2002]
+* Quartets (quartets) [Galitsky, 2002]
 * Statistical Coupling Analysis (sca) [Lockless and Ranganathan, 1999]
 * Explicit Likelihood of Subset Covariation (elsc) [Dekker et al, 2004]
 
