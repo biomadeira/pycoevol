@@ -26,8 +26,8 @@ class alignment:
     Mafft - Katoh et al, 2002
     
     Methods for scoring MSAs:
-    Sum-of-Pairs - 
-    Circular Sum - Gonnet et al, 2009
+    Sum-of-Pairs - Murata et al, 1985
+    TODO: Circular Sum - Gonnet et al, 2000
     """
     def __init__(self, id1, id2, alignment):
         self.id1 = str(id1)
