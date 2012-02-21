@@ -15,10 +15,9 @@ distribute, reuse, modify, improve and debug it.
 
 If you want to cite this piece of software/workflow use the following:
 
-Madeira, F. and Krippahl, L. (2011). PYCOEVOL: A Python workflow to study 
-protein-protein coevolution. International conference on Bioinformatics 
-Models, Methods and Algorithms - BIOINFORMATICS 2012, Vila Moura, 
-Portugal, February 1-4, 2012 
+Fábio Madeira and Ludwig Krippahl. 2012. PYCOEVOL: A Python workflow to study 
+protein-protein coevolution. Proceedings of the International conference on 
+Bioinformatics Models, Methods and Algorithms - BIOINFORMATICS 2012, pp.143-9. 
 
 ##Dependencies
 
@@ -77,10 +76,12 @@ Make sure you insert input files in the ./Pycoevol/Data folder.
 
 **Pairwise distance measures:**
 
+* Clustalw distance[Chenna et al, 2003]
 * p-distance [Jukes and Cantor, 1969]
 * Jukes-Cantor [Jukes and Cantor, 1969]
 * Kimura distance [Kimura, 1983]
-* Pairwise score using Dayhoff matrices [based on Dayhoff et al, 1978]
+* Pairwise score using Dayhoff or HeniKoff matrices [Dayhoff et al, 1978; 
+Henikoff and Henikoff, 1992]
 
 ##Availability
 

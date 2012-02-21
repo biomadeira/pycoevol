@@ -9,9 +9,10 @@ from src.UTILS import aa_list, aa_symbols
 from Parameters import surface_threshold, interface_threshold
 from os import system, remove
 from shutil import copyfile
-from Bio import SeqIO
+from Bio import SeqIO, Entrez
 from Bio.Alphabet import IUPAC
 from Bio.PDB.PDBParser import PDBParser
+Entrez.email = "entrez@mail.com"
 
 
 class sequence:
@@ -49,11 +50,14 @@ class sequence:
         input_sequence = SeqIO.parse(input, "fasta", IUPAC.protein)
         for record in input_sequence:
             sequence = str(record.seq)
+            break
             
-        output = str("./Data/" + id + ".fasta")
+        output = str("./Data/" + id + ".fa")
         out = open(output, "w")
         print >> out, ">Query_id" + "\n" + sequence + "\n"
         out.close()
+        
+        remove(input)
         
     def validPDB(self, file, id, chain):
         "Checks if the input file is a valid PDB file"
@@ -73,13 +77,14 @@ class sequence:
     def sequencePDB(self, file, id, chain):
         "Extracts a sequence from the ATOM lines of a PDB file"
         
+        # sequence from atom lines
         input = str("./Data/" + file)
         input_structure = open(input, "r")
         structure = input_structure.readlines()
         input_structure.close()
         string=""
         for line in structure:
-            if line[0:4] =="ATOM":
+            if line[0:4] == "ATOM":
                 if line[21] == str(chain):
                     CA = line[13:16]
                     res = line[17:20]
@@ -94,6 +99,34 @@ class sequence:
         print >> out, ">Query_id" + "\n" + sequence + "\n"
         out.close()
         
+        # full sequence from acession number on DBREF lines
+        input = str("./Data/" + file)
+        input_structure = open(input, "r")
+        structure = input_structure.readlines()
+        input_structure.close()
+        
+        for line in structure:
+            if line[0:5] == "DBREF":
+                if line[21] == str(chain):
+                    data = line.split()
+                    ch = data[2]
+                    if ch == chain:
+                        ac_number = data[6]
+        try:
+            fetch = Entrez.efetch(db="protein", id=ac_number, rettype="fasta")
+                          
+            output = str("./Data/" + id + ".fa")
+            out = open(output, "w")
+            out.write(fetch.read())
+            out.close()
+            read = SeqIO.parse(output)
+            for record in read:
+                sequence = str(record.seq)
+            out = open(output, "w")
+            print >> out, ">Query_id" + "\n" + sequence + "\n"
+            out.close()
+        except:
+            copyfile("./Data/" + id + ".fasta", "./Data/" + id + ".fa")
 
     def surfacePDB(self, file, id, chain):
         """"

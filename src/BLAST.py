@@ -6,6 +6,8 @@
 ###############################################################################
 
 from Parameters import psiblast_evalue, psiblast_identity, psiblast_coverage
+from os import remove
+from shutil import move
 from Bio import SeqIO, Entrez
 from Bio.Alphabet import IUPAC
 from Bio.Blast import NCBIXML, NCBIWWW
@@ -37,20 +39,30 @@ class psiblast:
             evalue = psiblast_evalue
             reference_protein = "refseq_protein"
         
-            sequence = "./Data/" + id + ".fasta"
+            in_sequence = "./Data/" + id + ".fa"
+            
             output = "./Data/"+ id + ".xml" 
-            psiblast = NcbipsiblastCommandline(query=sequence, 
+            psiblast = NcbipsiblastCommandline(query=in_sequence, 
 										 db=reference_protein, 
 										 outfmt=5,  
 										 threshold=evalue, 
 										 out=output) 
             psiblast()
+            
+            try:
+                open("./Data/" + id + ".fasta")
+                open.close()
+                remove("./Data/" + id + ".fa")
+            except: 
+                move("./Data/" + id + ".fa", "./Data/" + id + ".fasta")
         else:
             # edit psiblast_evalue at Parameters.py
             evalue = psiblast_evalue
             reference_protein = "refseq_protein"
-        
-            for seq_record in SeqIO.parse("./Data/" + id + ".fasta", 
+            
+            in_sequence = "./Data/" + id + ".fa"
+                
+            for seq_record in SeqIO.parse(in_sequence, 
                                           "fasta",IUPAC.protein):
                 sequence = seq_record.seq
         
@@ -61,6 +73,13 @@ class psiblast:
 								    expect=evalue,
 								    hitlist_size=500)
                 psiblast
+                
+                try:
+                    open("./Data/" + id + ".fasta")
+                    open.close()
+                    remove("./Data/" + id + ".fa")
+                except: 
+                    move("./Data/" + id + ".fa", "./Data/" + id + ".fasta")
 
             output = "./Data/"+ id + ".xml"
             saveblast = open(output, "w")

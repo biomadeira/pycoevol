@@ -537,7 +537,7 @@ class coevolution:
             pass      
 
         
-def matchScore(alpha, beta, matrix):
+def matchScore(alpha, beta, score_matrix):
     "Matches scores from a matrix"
         
     alphabet = {}    
@@ -564,7 +564,7 @@ def matchScore(alpha, beta, matrix):
     lut_x = alphabet[alpha]
     lut_y = alphabet[beta]
     
-    return mapMatrix(matrix)[lut_x][lut_y]
+    return score_matrix[lut_x][lut_y]
 
 def matchScore2(alpha, beta, score_matrix):
     "Matches scores from a matrix - different residue order"
@@ -614,19 +614,20 @@ def twoDimensionalMatrix(column, score_matrix):
     two_d = []
     for i in range(len(column)):
         for j in range(len(column)):
-            res1 = column[i]
-            res2 = column[j]
-            if res1 in aa and res2 in aa:
-                s = float(matchScore2(res1, res2, score_matrix))
-                two_d.append(s)
-            else:
-                s = 0.0
-                two_d.append(s)
+            if i!=j:
+                res1 = column[i]
+                res2 = column[j]
+                if res1 in aa and res2 in aa:
+                    s = float(matchScore2(res1, res2, score_matrix))
+                    two_d.append(s)
+                else:
+                    s = 0.0
+                    two_d.append(s)
                 
     return two_d
         
-def log20(n):  
-    return log(n) * 1.0 / log(20)
+def log21(n):  
+    return log(n) * 1.0 / log(21)
 
 def ln(n): 
     return log(n) * 1.0 / log(e)
@@ -656,6 +657,7 @@ def mutualInformation(i, j, cols1, cols2, pD1, pD2):
     Mutual informaton for protein coevolution as by
     Gloor et al, 2005. MI(X,Y) = H(X) + H(Y) - H(X,Y)
     MI(X,Y) = SUMSUM P(x,y).log20(P(x,y)/P(x).P(y))
+    Treates gaps as signal.
     """
     
     col1, col2 = cols1[i], cols2[j]
@@ -669,7 +671,7 @@ def mutualInformation(i, j, cols1, cols2, pD1, pD2):
         pX = pD1[i][p[0]]
         pY = pD2[j][p[1]]
         inside = (pXY * 1.0) / (pX * pY)
-        outside = pXY * log20(inside)
+        outside = pXY * log21(inside)
         mi += outside
     return mi
 
@@ -693,12 +695,12 @@ def miEntropy(i, j, cols1, cols2, pD1, pD2):
         pX = pD1[i][p[0]]
         pY = pD2[j][p[1]]
         inside = (pXY * 1.0) / (pX * pY)
-        outside = pXY * log20(inside)
+        outside = pXY * log21(inside)
         mi += outside
     for p in pL: 
         pXY = pairs.count(p) * 1.0 / n
         inside = pXY
-        outside = pXY * log20(inside)
+        outside = pXY * log21(inside)
         entropy += outside
     entropy = -entropy
     if entropy == 0.0:
@@ -916,8 +918,11 @@ def quartetsCorrelation(column1,column2):
             Pjy = y.count(j) * 1.0 / len(y)
             val = [i,j]
             Dmin = pairs.count(val)
-            Dif = len(pairs) - Dmin
-            DQmin = Dmin * 1.0 / Dif
+            Dif = 1.0 * (len(pairs) - Dmin)
+            if Dif != 0.0:
+                DQmin = Dmin * 1.0 / Dif
+            else:
+                DQmin = 0.0
 
             try :
                 if ((Pix*Pjy > Piy*Pjx) and ((Pix > Dmin) or (Pjy > Dmin)) or\
@@ -1001,8 +1006,8 @@ def subAlignment (column, columns):
     for j in range(len(y)):
         if y[j] in aa:
             freq = y.count(y[j])
-            aa = y[j]
-            value = [aa, freq]
+            freq_aa = y[j]
+            value = [freq_aa, freq]
             pD.append(value)
     
     sort = sorted(pD, key=lambda pD: pD[1])
@@ -1017,7 +1022,6 @@ def subAlignment (column, columns):
     
     sub_align = []
     for col in columns:
-        print col
         sub_col = []
         for pos in col_positions:
             sub_col.append(col[pos])

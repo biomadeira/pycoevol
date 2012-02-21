@@ -7,6 +7,7 @@
 
 from Parameters import pairwise_distance, pairwise_trim
 from Parameters import correlation_method
+from Parameters import alignscore_matrix
 from src.UTILS import aa
 from os import remove, system, chdir
 from numpy import mean, sqrt, log, median
@@ -14,7 +15,6 @@ from math import e
 from collections import OrderedDict
 from Bio import SeqIO, AlignIO
 from Bio.Alphabet import IUPAC
-from Bio.Align.Applications import ClustalwCommandline
 
     
 class organism:
@@ -26,6 +26,7 @@ class organism:
     Jukes-Cantor - Jukes and Cantor, 1969
     Kimura Distance - Kimura, 1983
     Alignment score - based on Dayhoff et al, 1978 
+    To DO: Enable PAM250 or BLOSUM62
     """
     def __init__(self, id1, id2, psiblast):
         self.id1 = str(id1)
@@ -125,12 +126,14 @@ class organism:
         """
         Trims the set of sequences by pairwise alignment with the query.
         Calculates distance between each pair by diferent methods:
-        p-distance, Jukes-Cantor and Alignment score with BLOSUM62 matrix.
-        (pdistance, jukescantor, alignscore - edit Parameters.py)
+        ClustalW distance, p-distance, Jukes-Cantor and Alignment score, 
+        with BLOSUM62 or PAM250 matrix.
+        (edit Parameters.py)
         """
         
         trim = pairwise_trim
         method = pairwise_distance
+        align_matrix = alignscore_matrix
         distances1 = []
         distances2 = []
         
@@ -157,20 +160,12 @@ class organism:
                 out_pair.write(sequence1 + sequence2)
                 out_pair.close()    
             
-                output_align = "./Data/" + id1 + "_pair.aln"
-                output_tree = "./Data/" + id1 + "_pair.dnd"
-                clustalw = ClustalwCommandline(infile=pair, 
-                                           outfile=output_align, 
-                                           newtree=output_tree, 
-                                           align="input", 
-                                           quiet="input", 
-                                           seqnos="ON", 
-                                           outorder="input", 
-                                           type="PROTEIN", 
-                                           pwmatrix="GONNET", 
-                                           gapopen=10, 
-                                           gapext=0.2) 
-                clustalw()
+                output_align = "./Data/"+self.t+"/" + id1 + ".aln"
+                output_tree = "./Data/"+self.t+"/" + id1 + ".dnd"
+                distance = "./Data/"+self.t+"/" + id1 + ".distance"
+                clustalw = system("clustalw " +  pair + " > " + distance) 
+                clustalw
+                
                 output_fasta = "./Data/" + id1 + "_pair.fasta"
                 AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
                 
@@ -199,7 +194,8 @@ class organism:
                 sequence1 = msa[0]
                 sequence2 = msa[1]
             
-                pair_score = getDistance(sequence1, sequence2, method)
+                pair_score = getDistance(sequence1, sequence2, 
+                                         method, align_matrix, distance)
                 value = [pair_score, p_new_seq]
                 new_rec.append(value) 
             
@@ -217,6 +213,7 @@ class organism:
             remove(output_align)
             remove(output_tree)
             remove(output_fasta)
+            remove(distance)
         except:
             pass
         
@@ -243,20 +240,12 @@ class organism:
                 out_pair.write(sequence1 + sequence2)
                 out_pair.close()    
             
-                output_align = "./Data/" + id2 + "_pair.aln"
-                output_tree = "./Data/" + id2 + "_pair.dnd"
-                clustalw = ClustalwCommandline(infile=pair, 
-                                           outfile=output_align, 
-                                           newtree=output_tree, 
-                                           align="input", 
-                                           quiet="input", 
-                                           seqnos="ON", 
-                                           outorder="input", 
-                                           type="PROTEIN", 
-                                           pwmatrix="GONNET", 
-                                           gapopen=10, 
-                                           gapext=0.2) 
-                clustalw()
+                output_align = "./Data/"+self.t+"/" + id1 + ".aln"
+                output_tree = "./Data/"+self.t+"/" + id1 + ".dnd"
+                distance = "./Data/"+self.t+"/" + id1 + ".distance"
+                clustalw = system("clustalw " +  pair + " > " + distance) 
+                clustalw 
+                
                 output_fasta = "./Data/" + id2 + "_pair.fasta"
                 AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
                 
@@ -285,7 +274,8 @@ class organism:
                 sequence1 = msa[0]
                 sequence2 = msa[1]
             
-                pair_score = getDistance(sequence1, sequence2, method)
+                pair_score = getDistance(sequence1, sequence2, 
+                                         method, align_matrix, distance)
                 value = [pair_score, p_new_seq]
                 new_rec.append(value) 
             
@@ -303,6 +293,7 @@ class organism:
             remove(output_align)
             remove(output_tree)
             remove(output_fasta)
+            remove(distance)
         except:
             pass
         
@@ -507,9 +498,9 @@ def matchScore(alpha, beta, score_matrix):
     
     return score_matrix[lut_x][lut_y]
     
-def mapMatrix(matrix):
+def mapMatrix(align_matrix):
     "Maps a matrix of floats"
-    matrix = matrix.upper()
+    matrix = align_matrix.upper()
     
     score_matrix = []
     input = './Matrix/' + matrix
@@ -538,20 +529,40 @@ def orderedDict(sequences, key_function=None):
 def ln(n): 
     return log(n) * 1.0 / log(e)
      
-def getDistance(sequence1, sequence2, method):
+def getDistance(sequence1, sequence2, method, align_matrix, distance):
     "Returns the distance between the sequences"       
-    if method == "pdistance":
+    if method == "clustalw":
+        distance = clustalwDistance(distance)   
+    elif method == "pdistance":
         distance = pDistance(sequence1,sequence2) 
     elif method == "jukescantor":
         distance = jukesCantor(sequence1,sequence2)
     elif method == "kimura":
         distance = kimuraDistance(sequence1,sequence2)
     elif method == "alignscore":
-        score_matrix = mapMatrix("BLOSUM62")
+        score_matrix = mapMatrix(align_matrix)
         distance = alignmentScore(sequence1,sequence2, score_matrix)
     else: 
         raise StandardError, "%s - Invalid method for distance calculation" %(method)  
     return distance
+
+def clustalwDistance(distance):
+    """
+    Gets the distance from clustalw scores.
+    """
+    state = "Sequences (1:2) Aligned. Score:"
+    
+    input = open(distance, "r")
+    read = input.readlines()
+    input.close()
+    for l in read:
+        if state in l:
+            line = l.split()
+            length = len(line)
+            score = 0.01 * int(line[length - 1])
+        else: pass
+
+    return score
 
 def pDistance(sequence1,sequence2):
     """
@@ -634,14 +645,14 @@ def alignmentScore(sequence1,sequence2, score_matrix):
     for i in sequence1:
         for j in sequence1:
             if i != "-" or j != "-":
-                score11 += float(matchScore(i, j, "BLOSUM62"))
+                score11 += float(matchScore(i, j, score_matrix))
             else: pass
     
     score22 = 0     
     for i in sequence2:
         for j in sequence2:
             if i != "-" or j != "-":
-                score22 += float(matchScore(i, j, "BLOSUM62"))
+                score22 += float(matchScore(i, j, score_matrix))
             else: pass
     
     part1 = (1 - score12 * 1.0 / score11)

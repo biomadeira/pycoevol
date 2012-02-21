@@ -13,14 +13,15 @@ psiblast_evalue = 10                    # [0.0000001:10]
 psiblast_identity = 0                   # [0:100] (%)
 psiblast_coverage = 0                   # [0:100] (%)
 pairwise_trim = True                    # True or False
-pairwise_distance = "jukescantor"       # "pdistance", "jukescantor", "Kimura"
-                                        # "alignscore" or None
-correlation_method = None               # "phylogen"
+pairwise_distance = "clustalw"          # "clustalw", "pdistance", "Kimura"
+                                        # "jukescantor" or "alignscore"
+alignscore_matrix = "BLOSUM62"          # "BLOSUM62" or "PAM250"
+correlation_method = None               # None or "phylogen"
 clustalw_gap_opening = 10               # [0:100]
 clustalw_gap_extension = 0.2            # [0:10]
 clustalw_distance_matrix = "GONNET"     # "GONNET", "BLOSUM" or "PAM"
 muscle_max_iteration = 16               # [2:16]
-mafft_configuration = "fftnsi"          # "fftnsi" or "linsi"
+mafft_configuration = "linsi"           # "fftnsi" or "linsi"
 alignment_score = "sumofpairs"          # "sumofpairs" or False (* "circularsum")
 best_results = 20                       # [1:max(scores)]
 results_histogram = True                # True or False

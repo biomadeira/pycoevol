@@ -34,7 +34,7 @@ def printUsage():
                   -sca or -elsc
     help          -h or -help
                  
-    Check the README.txt for further details.
+    Check the README.md for further details.
     """ %__version__
     print Usage
         
@@ -82,9 +82,9 @@ def checkArguments():
     coevolution != 'pearson' and coevolution != 'spearman' and \
     coevolution != 'mcbasc' and coevolution != 'quartets' and \
     coevolution != 'sca' and coevolution != 'elsc':
-        raise StandardError, "ERROR: Coevultion Measure: Type '–mi', '–mie', \
-        '–rcwmi', '–cpvnmie', '–cpvn', '–clm', '–vol', '-omes', 'pearson', \
-        'spearman', 'mcbasc', 'quartets', 'sca' or 'elsc'"
+        raise StandardError, "ERROR: Coevolution Measure: Type '–mi', '–mie', \
+        '–rcwmi', '–cpvnmie', '–cpvn', '–clm', '–vol', '-omes', '-pearson', \
+        '-spearman', '-mcbasc', '-quartets', '-sca' or '-elsc'"
 
 def checkDependencies():
     try: 
