@@ -47,7 +47,7 @@ _python Pycoevol.py  -input1 -input2 -psiblast -alignment -coevolution_
     help          -h or -help
 
 **Example:** 
-_python Pycoevol.py -3DX6.pdb:A -A2TP.pdb:A -internet -clustalw -mi_
+_python Pycoevol.py -3DX6.pdb:A -A2TP.pdb:A -internet -clustalw -sca_
 
 Pycoevol.py is the main execution file which parses files and options
 as arguments. Parameters.py must be edited in order to specify some 
@@ -76,7 +76,7 @@ Make sure you insert input files in the ./Pycoevol/Data folder.
 
 **Pairwise distance measures:**
 
-* Clustalw distance[Chenna et al, 2003]
+* ClustalW distance[Chenna et al, 2003]
 * p-distance [Jukes and Cantor, 1969]
 * Jukes-Cantor [Jukes and Cantor, 1969]
 * Kimura distance [Kimura, 1983]
