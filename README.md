@@ -80,7 +80,7 @@ Make sure you insert input files in the ./Pycoevol/Data folder.
 * p-distance [Jukes and Cantor, 1969]
 * Jukes-Cantor [Jukes and Cantor, 1969]
 * Kimura distance [Kimura, 1983]
-* Pairwise score using Dayhoff or HeniKoff matrices [Dayhoff et al, 1978; 
+* Pairwise score using Dayhoff or Henikoff matrices [Dayhoff et al, 1978; 
 Henikoff and Henikoff, 1992]
 
 ##Availability
