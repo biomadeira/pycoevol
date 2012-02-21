@@ -22,11 +22,12 @@ class organism:
     Main code for sort and selection of organisms. 
     
     Methods for calculate distance between pairwise alignments:
+    ClustalW pairwise distance - Chenna et al, 2003 
     p-distance - Jukes and Cantor, 1969
     Jukes-Cantor - Jukes and Cantor, 1969
     Kimura Distance - Kimura, 1983
-    Alignment score - based on Dayhoff et al, 1978 
-    To DO: Enable PAM250 or BLOSUM62
+    Alignment score using PAM250 or BLOSUM62 -Dayhoff et al, 1978;
+    Henikoff and Henikoff, 1992
     """
     def __init__(self, id1, id2, psiblast):
         self.id1 = str(id1)
