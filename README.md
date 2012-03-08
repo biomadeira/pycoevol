@@ -37,17 +37,29 @@ Bioinformatics Models, Methods and Algorithms - BIOINFORMATICS 2012, pp.143-9.
 ##Usage
  
 _python Pycoevol.py  -input1 -input2 -psiblast -alignment -coevolution_
-       
-    input1        -sequence1.fasta or -pdb1.pdb:A, where A is the chain designator                  
-    input2        -sequence2.fasta or -pdb2.pdb:B, where B is the chain designator
-    psiblast      -internet or -local (NCBI's PSIBLAST and local database are optional)  
-    alignment     -clustalw, -muscle or -mafft (MUSCLE and MAFFT are optional)
-    coevolution   -mi, -mie, -rcwmi,-cpvnmie, -cpvn, -clm, -vol, -omes, -pearson, 
-	              -spearman, -mcbasc, -quartets, -sca or -elsc
+    
+    input1        -seq1.fasta (-seqID1), -pdb1.pdb:A (-PDBID1:A)   
+                  or -align1.fasta (where A is the chain designator)                
+    input2        -seq2.fasta (-seqID2), -pdb2.pdb:B (-PDBID2:B)  
+                  or -align2.fasta (where B is the chain designator) 
+    psiblast      -internet, -local or -none (NCBI's PSIBLAST and 
+                  local database are optional) 
+    alignment     -clustalw, -muscle, -mafft or -none (MUSCLE and  
+                  MAFFT are optional) 
+    coevolution   -mi, -mie, -rcwmi,-cpvnmie, -cpvn, -clm, -vol
+                  -omes, -pearson, -spearman, -mcbasc, -quartets,
+                  -sca or -elsc
     help          -h or -help
 
-**Example:** 
-_python Pycoevol.py -3DX6.pdb:A -A2TP.pdb:A -internet -clustalw -sca_
+**Examples:**
+
+_python Pycoevol.py -3DX6.pdb:A -3DX6.pdb:B -internet -clustalw -sca_
+
+_python Pycoevol.py -3DX6:A -3DX6:B -internet -clustalw -sca_
+
+_python Pycoevol.py -seq1.fasta -seq2.fasta -local -mafft -mi_
+
+_python Pycoevol.py -P30481 -P61769 -local -mafft -mi_
 
 Pycoevol.py is the main execution file which parses files and options
 as arguments. Parameters.py must be edited in order to specify some 
