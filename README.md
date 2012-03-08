@@ -3,7 +3,7 @@
 
 A Python workflow to study protein-protein coevolution and interaction
 
-Pycoevol is an integrated system for study inter-protein coevolution and interaction.
+Pycoevol is an integrated system for studying inter-protein coevolution and interaction.
 It automates the identification of contact points between protein partners, extending the 
 general coevolution workflow consisting of: homologous sequence search; multiple sequence 
 alignment computation; and coevolution analysis; with an improved selection of organisms 
