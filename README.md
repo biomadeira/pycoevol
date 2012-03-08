@@ -12,18 +12,6 @@ It generates friendly output results: matrix of scores; histograms;
 heat-maps; PyMOL scripts and interaction maps. Additional information for common web-services
 can be retrieved from SIFTS. 
 
-
-Pycoevol is an integrated system for studying inter-protein coevolution and interaction.
-It automates the identification of contact points between protein partners, extending the 
-general coevolution workflow consisting of: homologous sequence search; multiple sequence 
-alignment computation; and coevolution analysis; with an improved selection of organisms 
-and contact prediction. 
-
-It generates friendly output results: matrix of scores; histograms;
-heat-maps; PyMOL scripts and interaction maps. Additional information for common web-services
-can be retrieved from SIFTS. 
-
-
 ##Disclaimer 
 
 This software is provided "as is", with no explicit or implied warranties. 
