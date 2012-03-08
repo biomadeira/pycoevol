@@ -11,7 +11,7 @@ from src.ORGANISM import organism
 from src.ALIGN import alignment
 from src.COEVOL import coevolution
 from src.INFO import information
-
+from Parameters import results_sifts
 
 class main:
     """
@@ -184,8 +184,10 @@ class main:
             else:
                 info.getInfo(self.id1)
                 info.getInfo(self.id2)
-                info.getSIFTS(self.id1, self.chain1)
-                info.getSIFTS(self.id2, self.chain2)
+                if results_sifts == True:
+                    info.getSIFTS(self.id1, self.chain1)
+                    info.getSIFTS(self.id2, self.chain2)
+                else: pass
         else:
             if self.chain1 == "" and self.chain2 == "":
                 info.getInfo(self.id1 + "_1")
@@ -193,11 +195,15 @@ class main:
                 if self.chain1 != self.chain2:
                     info.getInfo(self.id1 + "_1")
                     info.getInfo(self.id1 + "_2")
-                    info.getSIFTS(self.id1 + "_1", self.chain1)
-                    info.getSIFTS(self.id1 + "_2", self.chain2)
+                    if results_sifts == True:
+                        info.getSIFTS(self.id1 + "_1", self.chain1)
+                        info.getSIFTS(self.id1 + "_2", self.chain2)
+                    else: pass
                 else:
                     info.getInfo(self.id1 + "_1")
-                    info.getSIFTS(self.id1 + "_1", self.chain1)
+                    if results_sifts == True:
+                        info.getSIFTS(self.id1 + "_1", self.chain1)
+                    else: pass
         return
 
     

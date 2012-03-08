@@ -27,4 +27,5 @@ best_results = 20                       # [1:max(scores)]
 results_histogram = True                # True or False
 results_heatmap = True                  # True or False
 results_structure = "pymol"             # "pymol" or False
+results_sifts = False                   # True or False
 
