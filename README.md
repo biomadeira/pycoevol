@@ -111,9 +111,6 @@ Henikoff and Henikoff, 1992]
 
 ##Availability
 
-Packages available at
-http://code.google.com/p/pycoevol/
-
 Source code available at
 https://github.com/fmadeira/pycoevol
 
