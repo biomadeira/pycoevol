@@ -4,6 +4,8 @@
 # This code is part of Pycoevol distribution.                                 #
 # This work is public domain.                                                 #
 ###############################################################################
+#TODO: 
+# Interaction maps
 
 import sys
 from src import MAIN
@@ -21,14 +23,14 @@ def printUsage():
 
     Pycoevol.py   -input1 -input2 -psiblast -alignment -coevolution
        
-    input1        -sequence1.fasta or -pdb1.pdb:A, where A is the 
-                  chain designator                  
-    input2        -sequence2.fasta or -pdb2.pdb:B, where B is the 
-                  chain designator
-    psiblast      -internet or -local (NCBI's PSIBLAST and local
-                  database are optional)  
-    alignment     -clustalw, -muscle or -mafft (MUSCLE and MAFFT 
-                  are optional)
+    input1        -seq1.fasta (-seqID1), -pdb1.pdb:A (-PDBID1:A)   
+                  or -align1.fasta (where A is the chain designator)                
+    input2        -seq2.fasta (-seqID2), -pdb2.pdb:B (-PDBID2:B)  
+                  or -align2.fasta (where B is the chain designator) 
+    psiblast      -internet, -local or -custom (NCBI's PSIBLAST and 
+                  local database are optional) 
+    alignment     -clustalw, -muscle, -mafft or -custom (MUSCLE and  
+                  MAFFT are optional) 
     coevolution   -mi, -mie, -rcwmi,-cpvnmie, -cpvn, -clm, -vol
                   -omes, -pearson, -spearman, -mcbasc, -quartets,
                   -sca or -elsc
@@ -40,40 +42,48 @@ def printUsage():
         
 def pycoevolRun():
     "Routine which chooses the proper scripts given the input commands"
-    main = MAIN.main(file1,file2,id1, id2, chain1, chain2, 
+    main = MAIN.main(file1, file2,id1, id2, chain1, chain2, 
                      psiblast, alignment, coevolution)
-    main.sequenceSripts()
-    main.psiblastSripts()
-    main.organismSripts()
-    main.alignmentSripts()
-    main.coevolutionSripts()
-    main.infoScripts()
-    print "Analysis complete!"
     
+    if psiblast == "custom" and alignment == "custom":
+        main.coevolutionSripts()
+    else:
+        main.sequenceSripts()
+        main.psiblastSripts()
+        main.organismSripts()
+        main.alignmentSripts()
+        main.coevolutionSripts()
+        main.infoScripts()
         
+    print "Analysis complete!"
+    return
+   
 def checkArguments():
     "Checks if the input commands are valid"
     try:
         input =str("./Data/" + file1)
         file = open(input,"r")
         file.close()
-    except:    
-        raise StandardError, "ERROR: File no.1 is not acessible"
+    except:
+        #raise StandardError, "ERROR: File no.1 is not acessible"
+        pass
     
     try:
         input =str("./Data/" + file2)
         file = open(input,"r")
         file.close() 
-    except:    
-        raise StandardError, "ERROR: File no.2 is not acessible"
+    except:
+        #raise StandardError, "ERROR: File no.2 is not acessible"
+        pass
     
-    if psiblast != 'internet' and psiblast != 'local':
-        raise StandardError, "ERROR: PSI-Blast: Type 'internet' or 'local'"
+    if psiblast != 'internet' and psiblast != 'local' and psiblast != 'custom':
+        raise StandardError, "ERROR: PSI-Blast: Type 'internet', 'local'\
+                            or 'custom'"
     
     if alignment != "clustalw" and alignment != "muscle" and \
-    alignment != "mafft":
+    alignment != "mafft" and alignment != 'custom':
         raise StandardError, "ERROR: Alignment Tools: Type '-clustalw', \
-        '-muscle' or '-mafft'"
+        '-muscle', '-mafft' or 'custom'"
     
     if coevolution != 'mi' and coevolution != 'mie' and \
     coevolution != 'rcwmi' and coevolution != 'cpvnmie' and \
@@ -140,27 +150,43 @@ def main():
             file1 = arg1[0].lstrip("-")
             chain1 = arg1[1]
             id1 = file1.split(".")
-            id1 = id1[0]
+            if len(id1) != 1:
+                id1 = id1[0]
+            else:
+                id1 = id1[0]
+                file1 = file1 + ".pdb"
         else:
             arg1 = args[1]
             file1 = arg1.lstrip("-")
             chain1 = ""
             id1 = file1.split(".")
-            id1 = id1[0]
+            if len(id1) != 1:
+                id1 = id1[0]
+            else:
+                id1 = id1[0] 
+                file1 = file1 + ".fasta"
             
         arg2 = args[2].split(":")
-        if len(arg2) != 1:    
+        if len(arg2) != 1: 
             file2 = arg2[0].lstrip("-")
             chain2 = arg2[1]
             id2 = file2.split(".")
-            id2 = id2[0]
-        else: 
+            if len(id2) != 1:
+                id2 = id2[0]
+            else:
+                id2 = id2[0]
+                file2 = file2 + ".pdb"
+        else:
             arg2 = args[2]
             file2 = arg2.lstrip("-")
             chain2 = ""
             id2 = file2.split(".")
-            id2 = id2[0]
-            
+            if len(id2) != 1:
+                id2 = id2[0]
+            else:
+                id2 = id2[0] 
+                file2 = file2 + ".fasta"
+        
         psiblast = args[3].lstrip("-")
         alignment = args[4].lstrip("-")
         coevolution = args[5].lstrip("-")

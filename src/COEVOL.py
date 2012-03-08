@@ -10,6 +10,7 @@ from src.ALIGN import alignment as class_alignment
 from Parameters import results_histogram, results_heatmap, results_structure
 from Parameters import best_results
 from src.UTILS import aa
+from shutil import copyfile
 from math import log, e, factorial
 from numpy import mean, std, zeros, sqrt
 from matplotlib import pyplot
@@ -67,16 +68,22 @@ class coevolution:
         self.alignment = alignment
         self.coevolution = coevolution
 
-    def coevolAnalysis(self, id1, id2, chain1, chain2, alignment, coevolution):
+    def coevolAnalysis(self, file1, file2, id1, id2, 
+                       chain1, chain2, alignment, coevolution):
         "Returns a matrix of coevolution scores"
         
         seq = class_sequence(self.file1, self.file2, self.id1, self.id2, 
                        self.chain1, self.chain2)
         aln = class_alignment(self.id1, self.id2, self.alignment)
         
-        alignment1 = aln.cutAlignment(id1, alignment)
-        alignment2 = aln.cutAlignment(id2, alignment)
+        alignment1 = aln.cutAlignment(file1, id1, alignment)
+        alignment2 = aln.cutAlignment(file2, id2, alignment)
         
+        try:
+            assert len(alignment1) == len(alignment2)
+        except:
+            raise StandardError, "Alignments must have the same number of sequences"
+            
         protein1 = []
         protein2 = []
         try:
@@ -86,14 +93,14 @@ class coevolution:
             pass
 
         info = dict()
-        
-        if coevolution == "mi":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
-            pD1 = probabilityDict(columns1)
+        alignment1 = [e for e in alignment1]
+        columns1 = transpose(alignment1)
 
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
+        alignment2 = [e for e in alignment2]
+        columns2 = transpose(alignment2)
+            
+        if coevolution == "mi":
+            pD1 = probabilityDict(columns1)
             pD2 = probabilityDict(columns2)
          
             for i in range(len(columns1)):
@@ -101,12 +108,7 @@ class coevolution:
                     info[(i,j)] = mutualInformation(i, j, columns1, columns2, pD1, pD2)
         
         elif coevolution == "mie":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
             pD1 = probabilityDict(columns1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
             pD2 = probabilityDict(columns2)
          
             for i in range(len(columns1)):
@@ -114,12 +116,7 @@ class coevolution:
                     info[(i,j)] = miEntropy(i, j, columns1, columns2, pD1, pD2)
                     
         elif coevolution == "rcwmi":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
             pD1 = probabilityDict(columns1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
             pD2 = probabilityDict(columns2)
          
             i_all = dict()
@@ -148,12 +145,7 @@ class coevolution:
                                                    i_all[i], all_j[j], n)
         
         elif coevolution == "cpvnmie":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
             pD1 = probabilityDict(columns1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
             pD2 = probabilityDict(columns2)
             
             for i in range(len(columns1)):
@@ -164,38 +156,42 @@ class coevolution:
                     info[(i,j)] = contactPreferenceMI(mie, res1, res2)
                     
         elif coevolution == "cpvn":
+            score_matrix = mapMatrix("CPVN")
             for i in range(len(columns1)):
                 for j in range(len(columns2)):
+                    res1 = str(alignment1[0][i])
+                    res2 = str(alignment2[0][j])
                     average = []
                     for a,b in zip(columns1[i],columns2[j]):
                         if a in aa and b in aa:
-                            average.append(float(matchScore(res1, res2, "CPVN")))
+                            average.append(float(matchScore(res1, res2, score_matrix)))
                     info[(i,j)] = mean(average)
 
         elif coevolution == "clm":
+            score_matrix = mapMatrix("CLM")
             for i in range(len(alignment1[0])):
                 for j in range(len(alignment2[0])):
+                    res1 = str(alignment1[0][i])
+                    res2 = str(alignment2[0][j])
                     average = []
                     for a,b in zip(columns1[i],columns2[j]):
                         if a in aa and b in aa:
-                            average.append(float(matchScore(res1, res2, "CLM")))
+                            average.append(float(matchScore(res1, res2, score_matrix)))
                     info[(i,j)] = mean(average)
                     
         elif coevolution == "vol":
+            score_matrix = mapMatrix("VOL")
             for i in range(len(alignment1[0])):
                 for j in range(len(alignment2[0])):
+                    res1 = str(alignment1[0][i])
+                    res2 = str(alignment2[0][j])
                     average = []
                     for a,b in zip(columns1[i],columns2[j]):
                         if a in aa and b in aa:
-                            average.append(float(matchScore(res1, res2, "VOL")))
+                            average.append(float(matchScore(res1, res2, score_matrix)))
                     info[(i,j)] = mean(average)
                     
         elif coevolution == "omes":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
             
             omes = dict()
             for i in range(len(columns1)):
@@ -215,11 +211,6 @@ class coevolution:
                         info[(i,j)] = 0.0
                     
         elif coevolution == "pearson":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
             
             score_matrix = mapMatrix("MCLACHLAN")
             N = len(columns1[0])
@@ -230,11 +221,6 @@ class coevolution:
                     info[(i,j)] = pearsonsCorrelation(d_matrix1, d_matrix2, N)
                     
         elif coevolution == "spearman":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
             
             score_matrix = mapMatrix("MCLACHLAN")
             spearman = dict()
@@ -259,11 +245,6 @@ class coevolution:
                         info[(i,j)] = 0.0
                     
         elif coevolution == "mcbasc":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
             
             score_matrix = mapMatrix("MCLACHLAN")
             N = len(columns1[0])
@@ -275,11 +256,6 @@ class coevolution:
                      
         
         elif coevolution == "quartets":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
             
             quartets = dict()
             for i in range(len(columns1)):
@@ -300,11 +276,6 @@ class coevolution:
                         info[(i,j)] = 0.0
                         
         elif coevolution == "sca":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
             
             sca = dict()   
             for i in range(len(columns1)):
@@ -325,11 +296,6 @@ class coevolution:
                         info[(i,j)] = 0.0
                     
         elif coevolution == "elsc":
-            alignment1 = [e for e in alignment1]
-            columns1 = transpose(alignment1)
-
-            alignment2 = [e for e in alignment2]
-            columns2 = transpose(alignment2)
              
             elsc = dict()  
             for i in range(len(columns1)):
@@ -426,7 +392,7 @@ class coevolution:
             positions2.append(res2)
             
         if structure == "pymol":
-            output1 = "./Data/" + id1 + ".pml"
+            output1 = "./Results/" + id1 + ".pml"
             out_struct1 = open(output1, "w")
             print >> out_struct1, "load %s" %(id1 + ".pdb")
             print >> out_struct1, "hide lines"
@@ -449,7 +415,7 @@ class coevolution:
                     %(str(pos +1))
             out_struct1.close()
             
-            output2 = "./Data/" + id2 + ".pml"
+            output2 = "./Results/" + id2 + ".pml"
             out_struct2 = open(output2, "w")
             print >> out_struct2, "load %s" %(id2 + ".pdb")
             print >> out_struct2, "hide lines"
@@ -472,7 +438,9 @@ class coevolution:
                     %(str(pos +1))
             out_struct2.close()
         else: pass
-
+        
+        copyfile("./Data/" + id1 + ".pdb", "./Results/" + id1 + ".pdb")
+        copyfile("./Data/" + id2 + ".pdb", "./Results/" + id2 + ".pdb")
         
     def structurePair(self, id1, id2, chain1, chain2, alignment, coevolution):
         "Structure based results for a protein with two chains"
@@ -496,7 +464,7 @@ class coevolution:
             positions2.append(res2)
             
         if structure == "pymol":
-            output = "./Data/" + id1 + ".pml"
+            output = "./Results/" + id1 + ".pml"
             
             out_struct = open(output, "w")
             print >> out_struct, "load %s" %(id1 + ".pdb")
@@ -507,8 +475,8 @@ class coevolution:
             print >> out_struct, "show cartoon"
             print >> out_struct, "select hitmol1, chain %s" %(chain1.lower())
             print >> out_struct, "select hitmol2, chain %s" %(chain2.lower())
-            print >> out_struct, "color red (hitmol1)"
-            print >> out_struct, "color blue (hitmol2)" + "\n"
+            print >> out_struct, "color red, (hitmol1)"
+            print >> out_struct, "color blue, (hitmol2)" + "\n"
             for pos in positions1:
                 if best_info <= 20:
                     print >> out_struct, "color yellow, (hitmol1 and resid %s)" \
@@ -534,8 +502,9 @@ class coevolution:
                     %(str(pos +1))    
             out_struct.close()
         else: 
-            pass      
-
+            pass
+             
+        copyfile("./Data/" + id1 + ".pdb", "./Results/" + id1 + ".pdb")
         
 def matchScore(alpha, beta, score_matrix):
     "Matches scores from a matrix"
@@ -912,10 +881,10 @@ def quartetsCorrelation(column1,column2):
         
     for i,j in zip(x,y):
         if i in aa and j in aa:
-            Pix = x.count(i) * 1.0 / len(x)
-            Piy = y.count(i) * 1.0 / len(y)
-            Pjx = x.count(j) * 1.0 / len(x)
-            Pjy = y.count(j) * 1.0 / len(y)
+            Pix = x.count(i)
+            Piy = y.count(i) 
+            Pjx = x.count(j) 
+            Pjy = y.count(j)
             val = [i,j]
             Dmin = pairs.count(val)
             Dif = 1.0 * (len(pairs) - Dmin)
@@ -1147,9 +1116,10 @@ def drawHeatmap(id1, id2, input, output):
         inf = float(l[2])
         value = [res1, res2, inf]
         data.append(value)
-        residue2.append(res1)
         if res1 not in residue1:
             residue1.append(res1)
+        if res2 not in residue2:
+            residue2.append(res2)
        
     startX = int(data[0][0])
     startY = int(data[0][1])
@@ -1158,14 +1128,13 @@ def drawHeatmap(id1, id2, input, output):
     endY = int(data[length -1][1])
     
     lenX = len(residue1)
-    lenY = residue2.count(startX)    
-        
-    heatmap = zeros((lenX+1, lenY+1))
-    for i in range(0, len(data)-1):
+    lenY = len(residue2)    
+    heatmap = zeros((lenY+1, lenX+1))
+    for i in range(length):
         X = int(data[i][0])
         Y = int(data[i][1])
         XY = float(data[i][2])
-        heatmap[X][Y] = XY
+        heatmap[Y][X] = XY
             
     pyplot.figure()
     pyplot.pcolormesh(heatmap)

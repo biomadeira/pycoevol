@@ -5,11 +5,10 @@
 # This work is public domain.                                                 #
 ###############################################################################
 
-from Parameters import pairwise_distance, pairwise_trim
-from Parameters import correlation_method
-from Parameters import alignscore_matrix
+from Parameters import pairwise_distance, alignscore_matrix
+from Parameters import theilsen_cutoff
 from src.UTILS import aa
-from os import remove, system, chdir
+from os import remove, system
 from numpy import mean, sqrt, log, median
 from math import e
 from collections import OrderedDict
@@ -39,7 +38,7 @@ class organism:
         self.psiblast = psiblast
         
     def uniqueOrganism(self, id1, id2):
-        "Selects best hit for each matching organism"
+        "Removes unmatched organisms and concatenates sequences"
         
         input1 = "./Data/" + id1 + ".blast"        
         input2 = "./Data/" + id2 + ".blast"
@@ -123,16 +122,14 @@ class organism:
         return self.ord_sequences1, self.ord_sequences2
         
         
-    def trimSequence(self, id1, id2, trim=True, method=None):
+    def pairwiseDistance(self, id1, id2, method=None):
         """
-        Trims the set of sequences by pairwise alignment with the query.
         Calculates distance between each pair by diferent methods:
         ClustalW distance, p-distance, Jukes-Cantor and Alignment score, 
         with BLOSUM62 or PAM250 matrix.
         (edit Parameters.py)
         """
         
-        trim = pairwise_trim
         method = pairwise_distance
         align_matrix = alignscore_matrix
         distances1 = []
@@ -161,31 +158,15 @@ class organism:
                 out_pair.write(sequence1 + sequence2)
                 out_pair.close()    
             
-                output_align = "./Data/"+self.t+"/" + id1 + ".aln"
-                output_tree = "./Data/"+self.t+"/" + id1 + ".dnd"
-                distance = "./Data/"+self.t+"/" + id1 + ".distance"
+                output_align = "./Data/" + id1 + ".aln"
+                output_tree = "./Data/" + id1 + ".dnd"
+                distance = "./Data/" + id1 + ".distance"
                 clustalw = system("clustalw " +  pair + " > " + distance) 
                 clustalw
                 
                 output_fasta = "./Data/" + id1 + "_pair.fasta"
                 AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
                 
-                if trim == True:
-                    alignment = AlignIO.read(output_align, "clustal")
-                    length = alignment.get_alignment_length()
-                    for s in range(0,length,1):
-                        column = alignment[:, s]
-                        if column[0] != "-":
-                            start = s
-                            break
-                    for e in range(int(length-1), 0, -1):
-                        column = alignment[:, e]
-                        if column[0] != "-":
-                            end = e
-                            break
-            
-                    p_new_seq = p_new_seq[int(start):int(end)]
-                else: pass
 
                 input_align = SeqIO.parse(output_fasta, "fasta", IUPAC.protein)
                 msa = []
@@ -241,31 +222,14 @@ class organism:
                 out_pair.write(sequence1 + sequence2)
                 out_pair.close()    
             
-                output_align = "./Data/"+self.t+"/" + id1 + ".aln"
-                output_tree = "./Data/"+self.t+"/" + id1 + ".dnd"
-                distance = "./Data/"+self.t+"/" + id1 + ".distance"
+                output_align = "./Data/" + id2 + ".aln"
+                output_tree = "./Data/" + id2 + ".dnd"
+                distance = "./Data/" + id2 + ".distance"
                 clustalw = system("clustalw " +  pair + " > " + distance) 
                 clustalw 
                 
                 output_fasta = "./Data/" + id2 + "_pair.fasta"
                 AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
-                
-                if trim == True:
-                    alignment = AlignIO.read(output_align, "clustal")
-                    length = alignment.get_alignment_length()
-                    for s in range(0,length,1):
-                        column = alignment[:, s]
-                        if column[0] != "-":
-                            start = s
-                            break
-                    for e in range(int(length-1), 0, -1):
-                        column = alignment[:, e]
-                        if column[0] != "-":
-                            end = e
-                            break
-            
-                    p_new_seq = p_new_seq[int(start):int(end)]
-                else: pass
             
                 input_align = SeqIO.parse(output_fasta, "fasta", IUPAC.protein)
                 msa = []
@@ -309,8 +273,7 @@ class organism:
     
     def getsCorrelation(self, method=None):
         """
-        Uses phylogen -t using method='phylogen'or a 
-        python implementation of the Theil-Sen Estimator.
+        Python implementation of the Theil-Sen Estimator.
         Calculates the correlation, a distance between 
         each point P(x,y) to the mean slope. Distance of
         P(m,n) to Ax+By+C=0 is d=Abs(Am+Bn+C)/Sqrt(A^2+B^2)
@@ -322,42 +285,35 @@ class organism:
         except:    
             return
         
-        method = correlation_method
-        if method == "phylogen":
-            chdir("./Data/")
-            phylogen = system("phylogen.exe -t matrix.txt > correlation.txt") 
-            phylogen    
-            chdir("../")
-        else:
-            input = "./Data/matrix.txt"
-            input_matrix = open(input, "r")
-            matrix = input_matrix.readlines()
-            input_matrix.close()
-            
-            Xs = []
-            Ys = []
-            for line in matrix:
-                l = line.rstrip("\n")
-                l = l.split()
-                X = float(l[2])
-                Y = float(l[3])
-                Xs.append(X)
-                Ys.append(Y)
-            slope = theilsenEstimator(Xs,Ys)
-            
-            m = -slope
-            divisor = sqrt(1 + m**2)
-            distance = []
-            for f in range(len(Xs)):
-                d = abs(m*Xs[f] + Ys[f])/divisor
-                distance.append(d)
-            
-            output = "./Data/correlation.txt"
-            out_correlation = open(output, "w")
-            print >> out_correlation, "Slope: %s" %(str(slope))
-            for d in range(len(distance)):
-                print >> out_correlation, str(d+2) + "\t" + str(distance[d])
-            out_correlation.close()
+        input = "./Data/matrix.txt"
+        input_matrix = open(input, "r")
+        matrix = input_matrix.readlines()
+        input_matrix.close()
+        
+        Xs = []
+        Ys = []
+        for line in matrix:
+            l = line.rstrip("\n")
+            l = l.split()
+            X = float(l[2])
+            Y = float(l[3])
+            Xs.append(X)
+            Ys.append(Y)
+        slope = theilsenEstimator(Xs,Ys)
+        
+        m = -slope
+        divisor = sqrt(1 + m**2)
+        distance = []
+        for f in range(len(Xs)):
+            d = abs(m*Xs[f] + Ys[f])/divisor
+            distance.append(d)
+        
+        output = "./Data/correlation.txt"
+        out_correlation = open(output, "w")
+        print >> out_correlation, "Slope: %s" %(str(slope))
+        for d in range(len(distance)):
+            print >> out_correlation, str(d+2) + "\t" + str(distance[d])
+        out_correlation.close()
                  
 
     def removeSequences(self, id1, id2):
@@ -366,6 +322,7 @@ class organism:
         Theil-Sen estimator. It implements an easy algorithm to remove 
         distante sequences.
         """
+        
         try:
             input =str("./Data/correlation.txt")
             file = open(input,"r")
@@ -391,7 +348,7 @@ class organism:
                     value.append(d)    
         
         removed = []
-        threshold = 0.5 # cut less ->1; cut more ->0
+        threshold = theilsen_cutoff
         maximum = max(value)
         minimum = min(value)
         median_all = median(value)

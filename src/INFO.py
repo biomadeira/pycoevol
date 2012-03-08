@@ -65,6 +65,14 @@ class information:
         """
         
         id = id.lower()
+        try:
+            id = id.rstrip("_1")
+        except:
+            pass
+        try:
+            id = id.rstrip("_2")
+        except:
+            pass
         
         # Uniprot ID and SCOP
         input = "./SIFTS/pdb_chain_scop_uniprot.lst"

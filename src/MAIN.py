@@ -46,39 +46,38 @@ class main:
                        self.chain1, self.chain2)
         if self.id1 != self.id2:
             if self.chain1 == "" and self.chain2 == "":
-                seq.validFASTA(self.file1)
-                seq.validFASTA(self.file2)
-                seq.queryFASTA(self.file1)
-                seq.queryFASTA(self.file2)
+                seq.validFASTA(self.file1, self.id1)
+                seq.queryFASTA(self.file1, self.id1)
+                seq.validFASTA(self.file2, self.id2)
+                seq.queryFASTA(self.file2, self.id2)
             else:
                 seq.validPDB(self.file1, self.id1, self.chain1)
-                seq.validPDB(self.file2, self.id2, self.chain2)
                 seq.sequencePDB(self.file1, self.id1, self.chain1)
-                seq.sequencePDB(self.file2, self.id2, self.chain2)
                 seq.surfacePDB(self.file1, self.id1, self.chain1)
+                seq.validPDB(self.file2, self.id2, self.chain2)
+                seq.sequencePDB(self.file2, self.id2, self.chain2)
                 seq.surfacePDB(self.file2, self.id2, self.chain2)
-
         else:
             if self.chain1 == "" and self.chain2 == "":
-                seq.validFASTA(self.file1)
-                seq.queryFASTA(self.file1)
+                seq.validFASTA(self.file1, self.id1)
+                seq.queryFASTA(self.file1, self.id1)
             else:
                 if self.chain1 != self.chain2:
                     seq.validPDB(self.file1, self.id1, self.chain1)
-                    seq.validPDB(self.file1, self.id1, self.chain2)
                     seq.sequencePDB(self.file1, self.id1 + "_1", self.chain1)
-                    seq.sequencePDB(self.file1, self.id1 + "_2", self.chain2)
                     seq.surfacePDB(self.file1, self.id1 + "_1", self.chain1)
+                    seq.validPDB(self.file1, self.id1, self.chain2)
+                    seq.sequencePDB(self.file1, self.id1 + "_2", self.chain2)
                     seq.surfacePDB(self.file1, self.id1 + "_2", self.chain2)
-                    seq.interfacePDB(self.file1, self.id1, 
-                                     self.chain1, self.chain2)
                 else:
                     seq.validPDB(self.file1, self.id1, self.chain1)
                     seq.sequencePDB(self.file1, self.id1, self.chain1)
-                    seq.surfacePDB(self.file1, self.id1, self.chain1) 
+                    seq.surfacePDB(self.file1, self.id1, self.chain1)
         return
     
     def psiblastSripts(self):
+        seq = sequence(self.file1, self.file2, self.id1, self.id2, 
+                       self.chain1, self.chain2)
         blast = psiblast(self.id1, self.id2, self.psiblast)
         if self.id1 != self.id2:
             blast.searchPSIBLAST(self.id1,self.psiblast)
@@ -89,51 +88,43 @@ class main:
             blast.sequencesXML(self.id2,self.psiblast)
         else:
             if self.chain1 == "" and self.chain2 == "":
-                blast.searchPSIBLAST(self.id1,self.psiblast)
-                blast.validXML(self.id1)
-                blast.sequencesXML(self.id1,self.psiblast)
+                seq.copySequence(self.id1)
+                blast.searchPSIBLAST(self.id1 + "_1",self.psiblast)
+                blast.searchPSIBLAST(self.id1 + "_2",self.psiblast)
+                blast.validXML(self.id1 + "_1")
+                blast.validXML(self.id1 + "_2")
+                blast.sequencesXML(self.id1 + "_1",self.psiblast)
+                blast.sequencesXML(self.id1 + "_2",self.psiblast)
             else:
                 if self.chain1 != self.chain2:
-                    blast.internetPSIBLAST(self.id1 + "_1",self.psiblast)
-                    blast.internetPSIBLAST(self.id1 + "_2",self.psiblast)
+                    blast.searchPSIBLAST(self.id1 + "_1",self.psiblast)
+                    blast.searchPSIBLAST(self.id1 + "_2",self.psiblast)
                     blast.validXML(self.id1 + "_1")
                     blast.validXML(self.id1 + "_2")
                     blast.sequencesXML(self.id1 + "_1",self.psiblast)
                     blast.sequencesXML(self.id1 + "_2",self.psiblast)
                 else:
-                    blast.searchPSIBLAST(self.id1,self.psiblast)
-                    blast.validXML(self.id1)
-                    blast.sequencesXML(self.id1,self.psiblast)
+                    seq.copySequence(self.id1)
+                    blast.searchPSIBLAST(self.id1 + "_1",self.psiblast)
+                    blast.searchPSIBLAST(self.id1 + "_2",self.psiblast)
+                    blast.validXML(self.id1 + "_1")
+                    blast.validXML(self.id1 + "_2")
+                    blast.sequencesXML(self.id1 + "_1",self.psiblast)
+                    blast.sequencesXML(self.id1 + "_2",self.psiblast)
         return
     
     def organismSripts(self):
-        seq = sequence(self.file1, self.file2, self.id1, self.id2, 
-                       self.chain1, self.chain2) 
         org = organism(self.id1, self.id2, self.psiblast)
         if self.id1 != self.id2:
             org.uniqueOrganism(self.id1, self.id2)
-            org.trimSequence(self.id1, self.id2)
+            org.pairwiseDistance(self.id1, self.id2)
             org.getsCorrelation()
             org.removeSequences(self.id1, self.id2)
         else:
-            if self.chain1 == "" and self.chain2 == "":
-                seq.copySequence(self.id1, self.id2)
-                org.uniqueOrganism(self.id1 + "_1", self.id1 + "_2")
-                org.trimSequence(self.id1 + "_1", self.id1 + "_2")
-                org.getsCorrelation()
-                org.removeSequences(self.id1 + "_1", self.id1 + "_2")
-            else:
-                if self.chain1 != self.chain2:
-                    org.uniqueOrganism(self.id1 + "_1", self.id1 + "_2")
-                    org.trimSequence(self.id1 + "_1", self.id1 + "_2")
-                    org.getsCorrelation()
-                    org.removeSequences(self.id1 + "_1", self.id1 + "_2")
-                else:
-                    seq.copySequence(self.id1, self.id2)
-                    org.uniqueOrganism(self.id1 + "_1", self.id1 + "_2")
-                    org.trimSequence(self.id1 + "_1", self.id1 + "_2")
-                    org.getsCorrelation()
-                    org.removeSequences(self.id1 + "_1", self.id1 + "_2")                               
+            org.uniqueOrganism(self.id1 + "_1", self.id1 + "_2")
+            org.pairwiseDistance(self.id1 + "_1", self.id1 + "_2")
+            org.getsCorrelation()
+            org.removeSequences(self.id1 + "_1", self.id1 + "_2")                               
         return
     
     def alignmentSripts(self): 
@@ -155,7 +146,8 @@ class main:
                              self.chain1, self.chain2, 
                              self.alignment, self.coevolution)
         if self.id1 != self.id2:
-            coevol.coevolAnalysis(self.id1, self.id2, 
+            coevol.coevolAnalysis(self.file1, self.file2,
+                                  self.id1, self.id2, 
                                   self.chain1, self.chain2, 
                                   self.alignment, self.coevolution)
             coevol.bestInfo(self.id1, self.id2,  
@@ -168,7 +160,8 @@ class main:
                                             self.alignment, self.coevolution)
                 
         else:
-            coevol.coevolAnalysis(self.id1 + "_1", self.id1 + "_2", 
+            coevol.coevolAnalysis(self.file1, self.file1,
+                                  self.id1 + "_1", self.id1 + "_2", 
                                   self.chain1, self.chain2, 
                                   self.alignment, self.coevolution)
             coevol.bestInfo(self.id1 + "_1", self.id1 + "_2",  
@@ -195,7 +188,7 @@ class main:
                 info.getSIFTS(self.id2, self.chain2)
         else:
             if self.chain1 == "" and self.chain2 == "":
-                info.getInfo(self.id1)
+                info.getInfo(self.id1 + "_1")
             else:
                 if self.chain1 != self.chain2:
                     info.getInfo(self.id1 + "_1")

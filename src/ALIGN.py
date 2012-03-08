@@ -7,9 +7,11 @@
 
 from Parameters import clustalw_gap_opening, clustalw_gap_extension
 from Parameters import clustalw_distance_matrix
-from Parameters import muscle_max_iteration, mafft_configuration
+from Parameters import muscle_max_iteration
+from Parameters import mafft_configuration, mafft_threading
 from Parameters import alignment_score
 from os import remove, system
+from shutil import copyfile
 from itertools import combinations
 from Bio import AlignIO, SeqIO
 from Bio.Alphabet import IUPAC
@@ -54,8 +56,7 @@ class alignment:
             clustalw = ClustalwCommandline(infile=input_sequences, 
                                            outfile=output_align, 
                                            newtree=output_tree, 
-                                           align="input", 
-                                           quiet="input", 
+                                           align="input",  
                                            seqnos="ON", 
                                            outorder="input", 
                                            type="PROTEIN", 
@@ -113,21 +114,44 @@ class alignment:
             
         else:
             configuration = mafft_configuration
-            
+            threads = mafft_threading
             input_sequences = "./Data/" + id + ".fasta"
             output_fasta = "./Data/" + id + "_mafft.fasta"
             
             if configuration == "fftnsi":
-                fftnsi = "mafft --retree 2 --maxiterate 1000 --inputorder "
-                mafft = system(fftnsi + input_sequences + ">" + output_fasta)
-                mafft
+                if threads == False:
+                    fftnsi = "mafft --retree 2 --maxiterate 1000 --inputorder "
+                    mafft = system(fftnsi + input_sequences + ">" + output_fasta)
+                    mafft
+                else:
+                    try:
+                        threads = int(threads)
+                        fftnsi = "mafft --retree 2 --maxiterate 1000\
+                         --inputorder --threads %i " %(threads)
+                        mafft = system(fftnsi + input_sequences + ">" + output_fasta)
+                        mafft
+                    except:
+                        fftnsi = "mafft --retree 2 --maxiterate 1000 --inputorder "
+                        mafft = system(fftnsi + input_sequences + ">" + output_fasta)
+                        mafft
             else:
-                linsi = "mafft --localpair --maxiterate 1000 --inputorder "
-                mafft = system(linsi + input_sequences + ">" + output_fasta)
-                mafft
+                if threads == False:
+                    linsi = "mafft --localpair --maxiterate 1000 --inputorder "
+                    mafft = system(linsi + input_sequences + ">" + output_fasta)
+                    mafft
+                else:
+                    try:
+                        threads = int(threads)
+                        linsi = "mafft --localpair --maxiterate 1000\
+                         --inputorder --threads %i " %(threads)
+                        mafft = system(linsi + input_sequences + ">" + output_fasta)
+                        mafft
+                    except:
+                        linsi = "mafft --localpair --maxiterate 1000 --inputorder "
+                        mafft = system(linsi + input_sequences + ">" + output_fasta)
+                        mafft    
         
-        
-    def cutAlignment(self, id, alignment):
+    def cutAlignment(self, file, id, alignment):
         "Selects MSA columns of interest (Query_id != '-')"
                
         description = []
@@ -140,55 +164,102 @@ class alignment:
         new_align_concate = []
         self.cut_alignment = []
         
-        input = "./Data/" + id + "_" + alignment + ".fasta"
-        alignment = AlignIO.read(input, "fasta")
-        for record in alignment:
-            key = record.id
-            description.append(key)
-        
-        k = int(-1)
-        for s in description:
-            k += 1
-            key = s.find("Query_id")
-            if key != -1:
-                break
-        
-        align_length = alignment.get_alignment_length()
-        for position in range(0, align_length):
-            column = alignment[:, position]
-            align.append(column)
-            if column[k] != "-":
-                columns.append(column)
-                positions.append(position)
-                
-        for i in range(0, len(positions), 1):
-            beg = int(positions[i])
-            end = int(positions[i] + 1)
-            block = alignment[:, beg:end]         
-            blocks.append(block)
-        
-        for block in blocks:
-            for record in block:
-                seq = str(record.seq)
-                new_align.append(seq)
-        
-        numb_blocks = len(new_align) / len(columns[0])
-        for i in range(0, len(columns[0])):
-            for j in range(0, len(new_align), len(columns[0])):
-                new_align_ord.append(new_align[i + j])
-    
-        for i in range(0, len(new_align_ord), numb_blocks):
-            pseudolist = new_align_ord[i:i + numb_blocks]
-            list = ""
-            for j in pseudolist:
-                list += j
-            new_align_concate.append(list)
-
-        for seq in new_align_concate:
-            self.cut_alignment.append(seq)
+        if alignment != "custom":
+            input = "./Data/" + id + "_" + alignment + ".fasta"
+            alignment = AlignIO.read(input, "fasta")
+            for record in alignment:
+                key = record.id
+                description.append(key)
             
-        return self.cut_alignment
-
+            k = int(-1)
+            for s in description:
+                k += 1
+                key = s.find("Query_id")
+                if key != -1:
+                    break
+            
+            align_length = alignment.get_alignment_length()
+            for position in range(0, align_length):
+                column = alignment[:, position]
+                align.append(column)
+                if column[k] != "-":
+                    columns.append(column)
+                    positions.append(position)
+                    
+            for i in range(0, len(positions), 1):
+                beg = int(positions[i])
+                end = int(positions[i] + 1)
+                block = alignment[:, beg:end]         
+                blocks.append(block)
+            
+            for block in blocks:
+                for record in block:
+                    seq = str(record.seq)
+                    new_align.append(seq)
+            
+            numb_blocks = len(new_align) / len(columns[0])
+            for i in range(0, len(columns[0])):
+                for j in range(0, len(new_align), len(columns[0])):
+                    new_align_ord.append(new_align[i + j])
+        
+            for i in range(0, len(new_align_ord), numb_blocks):
+                pseudolist = new_align_ord[i:i + numb_blocks]
+                list = ""
+                for j in pseudolist:
+                    list += j
+                new_align_concate.append(list)
+    
+            for seq in new_align_concate:
+                self.cut_alignment.append(seq)
+                
+            return self.cut_alignment
+        
+        else:
+            output = "./Data/" + id + "_" + alignment + ".fasta"
+            copyfile("./Data/" + file, output)
+            input = "./Data/" + id + "_" + alignment + ".fasta"
+           
+            alignment = AlignIO.read(input, "fasta")
+            for record in alignment:
+                key = record.id
+                description.append(key)
+            
+            align_length = alignment.get_alignment_length()
+            for position in range(0, align_length):
+                column = alignment[:, position]
+                align.append(column)
+                if column[0] != "-":
+                    columns.append(column)
+                    positions.append(position)
+                    
+            for i in range(0, len(positions), 1):
+                beg = int(positions[i])
+                end = int(positions[i] + 1)
+                block = alignment[:, beg:end]         
+                blocks.append(block)
+            
+            for block in blocks:
+                for record in block:
+                    seq = str(record.seq)
+                    new_align.append(seq)
+            
+            numb_blocks = len(new_align) / len(columns[0])
+            for i in range(0, len(columns[0])):
+                for j in range(0, len(new_align), len(columns[0])):
+                    new_align_ord.append(new_align[i + j])
+        
+            for i in range(0, len(new_align_ord), numb_blocks):
+                pseudolist = new_align_ord[i:i + numb_blocks]
+                list = ""
+                for j in pseudolist:
+                    list += j
+                new_align_concate.append(list)
+    
+            for seq in new_align_concate:
+                self.cut_alignment.append(seq)
+                
+            return self.cut_alignment
+            
      
     def alignScore(self, id, alignment):
         """

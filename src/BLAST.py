@@ -6,6 +6,7 @@
 ###############################################################################
 
 from Parameters import psiblast_evalue, psiblast_identity, psiblast_coverage
+from Parameters import psiblast_threading
 from os import remove
 from shutil import move
 from Bio import SeqIO, Entrez
@@ -36,18 +37,37 @@ class psiblast:
         
         if psiblast == "local":
             # edit psiblast_evalue at Parameters.py
+            threads = psiblast_threading
             evalue = psiblast_evalue
             reference_protein = "refseq_protein"
         
             in_sequence = "./Data/" + id + ".fa"
             
-            output = "./Data/"+ id + ".xml" 
-            psiblast = NcbipsiblastCommandline(query=in_sequence, 
+            output = "./Data/"+ id + ".xml"
+            if threads == False:
+                psiblast = NcbipsiblastCommandline(query=in_sequence, 
 										 db=reference_protein, 
 										 outfmt=5,  
 										 threshold=evalue, 
 										 out=output) 
-            psiblast()
+                psiblast()
+            else:
+                try:
+                    threads = int(threads)
+                    psiblast = NcbipsiblastCommandline(query=in_sequence, 
+                                         db=reference_protein, 
+                                         outfmt=5,  
+                                         threshold=evalue, 
+                                         out=output,
+                                         num_threads=threads) 
+                    psiblast()
+                except: 
+                    psiblast = NcbipsiblastCommandline(query=in_sequence, 
+                                         db=reference_protein, 
+                                         outfmt=5,  
+                                         threshold=evalue, 
+                                         out=output) 
+                    psiblast()
             
             try:
                 open("./Data/" + id + ".fasta")
@@ -74,12 +94,12 @@ class psiblast:
 								    hitlist_size=500)
                 psiblast
                 
-                try:
-                    open("./Data/" + id + ".fasta")
-                    open.close()
-                    remove("./Data/" + id + ".fa")
-                except: 
-                    move("./Data/" + id + ".fa", "./Data/" + id + ".fasta")
+            try:
+                open("./Data/" + id + ".fasta")
+                open.close()
+                remove("./Data/" + id + ".fa")
+            except: 
+                move("./Data/" + id + ".fa", "./Data/" + id + ".fasta")
 
             output = "./Data/"+ id + ".xml"
             saveblast = open(output, "w")
