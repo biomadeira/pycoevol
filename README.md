@@ -53,13 +53,10 @@ _python Pycoevol.py  -input1 -input2 -psiblast -alignment -coevolution_
 
 **Examples:**
 
-_python Pycoevol.py -3DX6.pdb:A -3DX6.pdb:B -internet -clustalw -sca_
-
-_python Pycoevol.py -3DX6:A -3DX6:B -internet -clustalw -sca_
-
-_python Pycoevol.py -seq1.fasta -seq2.fasta -local -mafft -mi_
-
-_python Pycoevol.py -P30481 -P61769 -local -mafft -mi_
+_python Pycoevol.py -3DX6.pdb:A -3DX6.pdb:B -internet -clustalw -sca_ (local files)
+_python Pycoevol.py -3DX6:A -3DX6:B -internet -clustalw -sca_ (PDB ID accession numbers)
+_python Pycoevol.py -seq1.fasta -seq2.fasta -local -mafft -mi_ (local files)
+_python Pycoevol.py -P30481 -P61769 -local -mafft -mi_ PDB ID accession numbers)
 
 Pycoevol.py is the main execution file which parses files and options
 as arguments. Parameters.py must be edited in order to specify some 
