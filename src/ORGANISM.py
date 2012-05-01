@@ -1,20 +1,18 @@
-###############################################################################
+﻿###############################################################################
 # Encoding utf-8                                                              #
-# Created by F. Madeira, 2012                                                 #
+# F. Madeira and L. Krippahl, 2012                                            #
 # This code is part of Pycoevol distribution.                                 #
 # This work is public domain.                                                 #
 ###############################################################################
 
-from Parameters import pairwise_distance, alignscore_matrix
-from Parameters import theilsen_cutoff
 from src.UTILS import aa
+from Parameters import LoadParameters as LP
 from os import remove, system
 from numpy import mean, sqrt, log, median
 from math import e
 from collections import OrderedDict
 from Bio import SeqIO, AlignIO
 from Bio.Alphabet import IUPAC
-
     
 class organism:
     """
@@ -28,26 +26,31 @@ class organism:
     Alignment score using PAM250 or BLOSUM62 -Dayhoff et al, 1978;
     Henikoff and Henikoff, 1992
     """
-    def __init__(self, id1, id2, psiblast):
-        self.id1 = str(id1)
-        self.id2 = str(id2)
+    def __init__(self, id1, id2, psiblast, parameterfile, dirname):
+        self.id1 = id1
+        self.id2 = id2
         self.psiblast = psiblast
-    def __call__(self, id1, id2, psiblast):
-        self.id1 = str(id1)
-        self.id2 = str(id2)
+        self.parameterfile = parameterfile
+        self.dirname = dirname
+        
+    def __call__(self, id1, id2, psiblast, parameterfile, dirname):
+        self.id1 = id1
+        self.id2 = id2
         self.psiblast = psiblast
+        self.parameterfile = parameterfile
+        self.dirname = dirname
         
     def uniqueOrganism(self, id1, id2):
         "Removes unmatched organisms and concatenates sequences"
         
-        input1 = "./Data/" + id1 + ".blast"        
-        input2 = "./Data/" + id2 + ".blast"
+        input1 = self.dirname + id1 + ".blast"        
+        input2 = self.dirname + id2 + ".blast"
         
 
-        ord_dict1 = orderedDict(SeqIO.parse(input1, "fasta",IUPAC.protein), 
+        ord_dict1 = orderedDict(SeqIO.parse(input1, "fasta", IUPAC.protein),
                                 key_function=checkOrganism)
         
-        ord_dict2 = orderedDict(SeqIO.parse(input2, "fasta",IUPAC.protein), 
+        ord_dict2 = orderedDict(SeqIO.parse(input2, "fasta", IUPAC.protein),
                                 key_function=checkOrganism)
         
         org1 = []
@@ -65,7 +68,7 @@ class organism:
 
         if org1 == [] or org2 == []:
             raise StandardError, "There is no matching organisms"
-        elif len(org1) <15 or len(org2) <15:
+        elif len(org1) < 15 or len(org2) < 15:
             raise StandardError, "Number of matching organisms <15"
         else: pass
 
@@ -73,7 +76,7 @@ class organism:
         list = []
         for org in org1:
             if org in org2:
-                value = [org1.index(org) + org2.index(org), 
+                value = [org1.index(org) + org2.index(org),
                          org1.index(org), org2.index(org), org]
                 list.append(value)
         sort = sorted(list)
@@ -91,7 +94,7 @@ class organism:
                 sequences1.append(value)
                 
         input_sequences2 = SeqIO.parse(input2, "fasta", IUPAC.protein) 
-        sequences2 =[]
+        sequences2 = []
         for record in input_sequences2:
             org = str(record.description)
             seq = str(record.seq)
@@ -130,12 +133,12 @@ class organism:
         (edit Parameters.py)
         """
         
-        method = pairwise_distance
-        align_matrix = alignscore_matrix
+        method = LP(self.parameterfile, "pairwise_distance")
+        align_matrix = LP(self.parameterfile, "alignscore_matrix")
         distances1 = []
         distances2 = []
         
-        input = "./Data/" + id1 + ".fasta"
+        input = self.dirname + id1 + ".fasta"
         input_query = SeqIO.parse(input, "fasta", IUPAC.protein)
         for record in input_query:
             q_desc = str(record.description)
@@ -150,21 +153,21 @@ class organism:
             new_rec = []
             for seq in p_seq:
                 p_new_seq = seq   
-                pair = "./Data/" + id1 + ".pair"
-                out_pair= open(pair, "w")
+                pair = self.dirname + id1 + ".pair"
+                out_pair = open(pair, "w")
             
                 sequence1 = str("\n" + ">" + q_desc + "\n" + q_seq + "\n")
                 sequence2 = str("\n" + ">" + p_desc + "\n" + p_new_seq + "\n")
                 out_pair.write(sequence1 + sequence2)
                 out_pair.close()    
             
-                output_align = "./Data/" + id1 + ".aln"
-                output_tree = "./Data/" + id1 + ".dnd"
-                distance = "./Data/" + id1 + ".distance"
-                clustalw = system("clustalw " +  pair + " > " + distance) 
+                output_align = self.dirname + id1 + ".aln"
+                output_tree = self.dirname + id1 + ".dnd"
+                distance = self.dirname + id1 + ".distance"
+                clustalw = system("clustalw " + pair + " > " + distance) 
                 clustalw
                 
-                output_fasta = "./Data/" + id1 + "_pair.fasta"
+                output_fasta = self.dirname + id1 + "_pair.fasta"
                 AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
                 
 
@@ -176,7 +179,7 @@ class organism:
                 sequence1 = msa[0]
                 sequence2 = msa[1]
             
-                pair_score = getDistance(sequence1, sequence2, 
+                pair_score = getDistance(sequence1, sequence2,
                                          method, align_matrix, distance)
                 value = [pair_score, p_new_seq]
                 new_rec.append(value) 
@@ -185,7 +188,7 @@ class organism:
             new_dist = sort[0][0]
             new_seq = sort[0][1]
             distances1.append(new_dist)    
-            output = "./Data/" + id1 + ".fasta"
+            output = self.dirname + id1 + ".fasta"
             out_fasta = open(output, "a")
             out_fasta.write("\n" + ">" + p_desc + "\n" + new_seq + "\n")
             out_fasta.close()
@@ -199,7 +202,7 @@ class organism:
         except:
             pass
         
-        input = "./Data/" + id2 + ".fasta"
+        input = self.dirname + id2 + ".fasta"
         input_query = SeqIO.parse(input, "fasta", IUPAC.protein)
         for record in input_query:
             q_desc = str(record.description)
@@ -214,21 +217,21 @@ class organism:
             new_rec = []
             for seq in p_seq:
                 p_new_seq = seq           
-                pair = "./Data/" + id2 + ".pair"
-                out_pair= open(pair, "w")
+                pair = self.dirname + id2 + ".pair"
+                out_pair = open(pair, "w")
             
-                sequence1 = str("\n" + ">" +q_desc + "\n" + q_seq + "\n")
+                sequence1 = str("\n" + ">" + q_desc + "\n" + q_seq + "\n")
                 sequence2 = str("\n" + ">" + p_desc + "\n" + p_new_seq + "\n")
                 out_pair.write(sequence1 + sequence2)
                 out_pair.close()    
             
-                output_align = "./Data/" + id2 + ".aln"
-                output_tree = "./Data/" + id2 + ".dnd"
-                distance = "./Data/" + id2 + ".distance"
-                clustalw = system("clustalw " +  pair + " > " + distance) 
+                output_align = self.dirname + id2 + ".aln"
+                output_tree = self.dirname + id2 + ".dnd"
+                distance = self.dirname + id2 + ".distance"
+                clustalw = system("clustalw " + pair + " > " + distance) 
                 clustalw 
                 
-                output_fasta = "./Data/" + id2 + "_pair.fasta"
+                output_fasta = self.dirname + id2 + "_pair.fasta"
                 AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
             
                 input_align = SeqIO.parse(output_fasta, "fasta", IUPAC.protein)
@@ -239,7 +242,7 @@ class organism:
                 sequence1 = msa[0]
                 sequence2 = msa[1]
             
-                pair_score = getDistance(sequence1, sequence2, 
+                pair_score = getDistance(sequence1, sequence2,
                                          method, align_matrix, distance)
                 value = [pair_score, p_new_seq]
                 new_rec.append(value) 
@@ -248,7 +251,7 @@ class organism:
             new_dist = sort[0][0]
             new_seq = sort[0][1]
             distances2.append(new_dist)    
-            output = "./Data/" + id2 + ".fasta"
+            output = self.dirname + id2 + ".fasta"
             out_fasta = open(output, "a")
             out_fasta.write("\n" + ">" + p_desc + "\n" + new_seq + "\n")
             out_fasta.close()
@@ -263,10 +266,10 @@ class organism:
             pass
         
         
-        output = "./Data/" + "matrix.txt" 
+        output = self.dirname + "matrix.txt" 
         out_distance = open(output, "w")
         for i in range(len(distances1)):
-            print >> out_distance, "1" + "\t" + str(i+2) + "\t" + \
+            print >> out_distance, "1" + "\t" + str(i + 2) + "\t" + \
                                             str(distances1[i]) + "\t" + \
                                             str(distances2[i])
         out_distance.close()
@@ -279,13 +282,13 @@ class organism:
         P(m,n) to Ax+By+C=0 is d=Abs(Am+Bn+C)/Sqrt(A^2+B^2)
         """
         try:
-            input =str("./Data/matrix.txt")
-            file = open(input,"r")
+            input = str(self.dirname + "matrix.txt")
+            file = open(input, "r")
             file.close() 
         except:    
             return
         
-        input = "./Data/matrix.txt"
+        input = self.dirname + "matrix.txt"
         input_matrix = open(input, "r")
         matrix = input_matrix.readlines()
         input_matrix.close()
@@ -299,20 +302,20 @@ class organism:
             Y = float(l[3])
             Xs.append(X)
             Ys.append(Y)
-        slope = theilsenEstimator(Xs,Ys)
+        slope = theilsenEstimator(Xs, Ys)
         
         m = -slope
-        divisor = sqrt(1 + m**2)
+        divisor = sqrt(1 + m ** 2)
         distance = []
         for f in range(len(Xs)):
-            d = abs(m*Xs[f] + Ys[f])/divisor
+            d = abs(m * Xs[f] + Ys[f]) / divisor
             distance.append(d)
         
-        output = "./Data/correlation.txt"
+        output = self.dirname + "correlation.txt"
         out_correlation = open(output, "w")
-        print >> out_correlation, "Slope: %s" %(str(slope))
+        print >> out_correlation, "Slope: %s" % (str(slope))
         for d in range(len(distance)):
-            print >> out_correlation, str(d+2) + "\t" + str(distance[d])
+            print >> out_correlation, str(d + 2) + "\t" + str(distance[d])
         out_correlation.close()
                  
 
@@ -324,14 +327,14 @@ class organism:
         """
         
         try:
-            input =str("./Data/correlation.txt")
-            file = open(input,"r")
+            input = str(self.dirname + "correlation.txt")
+            file = open(input, "r")
             file.close() 
         except:    
             return
         
-        input = "./Data/correlation.txt"
-        input_correlation= open(input, "r")
+        input = self.dirname + "correlation.txt"
+        input_correlation = open(input, "r")
         correlation = input_correlation.readlines()
         input_correlation.close()
         
@@ -348,7 +351,7 @@ class organism:
                     value.append(d)    
         
         removed = []
-        threshold = theilsen_cutoff
+        threshold = LP(self.parameterfile, "theilsen_cutoff")
         maximum = max(value)
         minimum = min(value)
         median_all = median(value)
@@ -357,24 +360,24 @@ class organism:
         for v in value:
             if v < median_min or v > median_max:
                 position = value.index(v)    
-                removed.append(position+1)
+                removed.append(position + 1)
             else: pass       
         
         if removed != 0:
             sequences1 = []
-            input = "./Data/" + id1 + ".fasta"
+            input = self.dirname + id1 + ".fasta"
             input_sequences = SeqIO.parse(input, "fasta", IUPAC.protein)
             for record in input_sequences:
                 desc = record.description
                 seq = record.seq
-                value = [str(desc),str(seq)]
+                value = [str(desc), str(seq)]
                 sequences1.append(value)
                
             output_fasta = open(input, "w") 
             for i in range(len(sequences1)):
                 if i not in removed:
                     desc = str(sequences1[i][0])
-                    seq =  str(sequences1[i][1])
+                    seq = str(sequences1[i][1])
                     output_fasta.write(">" + desc + "\n" + seq + "\n" + "\n")
                 else: 
                     pass
@@ -382,19 +385,19 @@ class organism:
             
             
             sequences2 = []
-            input = "./Data/" + id2 + ".fasta"
+            input = self.dirname + id2 + ".fasta"
             input_sequences = SeqIO.parse(input, "fasta", IUPAC.protein)
             for record in input_sequences:
                 desc = record.description
                 seq = record.seq
-                value = [str(desc),str(seq)]
+                value = [str(desc), str(seq)]
                 sequences2.append(value)
             
             output_fasta = open(input, "w")    
             for i in range(len(sequences2)):
                 if i not in removed:
                     desc = str(sequences2[i][0])
-                    seq =  str(sequences2[i][1])
+                    seq = str(sequences2[i][1])
                     output_fasta.write(">" + desc + "\n" + seq + "\n" + "\n")
                 else: 
                     pass
@@ -402,7 +405,7 @@ class organism:
         else: pass
             
  
-def theilsenEstimator(Xs,Ys):
+def theilsenEstimator(Xs, Ys):
     """
     The Theil-Sen estimator calculates the median slope 
     among all lines through pairs of two-dimensional 
@@ -410,10 +413,10 @@ def theilsenEstimator(Xs,Ys):
     """
     assert len(Xs) == len(Ys)
     slopes = []
-    for f in range(0,len(Xs)-1):
+    for f in range(0, len(Xs) - 1):
         x1 = Xs[f]
         y1 = Ys[f]
-        for g in range(1,len(Ys)):
+        for g in range(1, len(Ys)):
             x2 = Xs[g]
             y2 = Ys[g]
             if x1 != x2:
@@ -492,16 +495,16 @@ def getDistance(sequence1, sequence2, method, align_matrix, distance):
     if method == "clustalw":
         distance = clustalwDistance(distance)   
     elif method == "pdistance":
-        distance = pDistance(sequence1,sequence2) 
+        distance = pDistance(sequence1, sequence2) 
     elif method == "jukescantor":
-        distance = jukesCantor(sequence1,sequence2)
+        distance = jukesCantor(sequence1, sequence2)
     elif method == "kimura":
-        distance = kimuraDistance(sequence1,sequence2)
+        distance = kimuraDistance(sequence1, sequence2)
     elif method == "alignscore":
         score_matrix = mapMatrix(align_matrix)
-        distance = alignmentScore(sequence1,sequence2, score_matrix)
+        distance = alignmentScore(sequence1, sequence2, score_matrix)
     else: 
-        raise StandardError, "%s - Invalid method for distance calculation" %(method)  
+        raise StandardError, "%s - Invalid method for distance calculation" % (method)  
     return distance
 
 def clustalwDistance(distance):
@@ -522,7 +525,7 @@ def clustalwDistance(distance):
 
     return score
 
-def pDistance(sequence1,sequence2):
+def pDistance(sequence1, sequence2):
     """
     Proportion of sites at which the two sequences are different. 
     p is close to 1 for poorly related sequences, and p is close 
@@ -531,8 +534,8 @@ def pDistance(sequence1,sequence2):
     assert len(sequence1) == len(sequence2)
     
     match = 0
-    for a,b in zip(sequence1, sequence2):
-        if a!=b:
+    for a, b in zip(sequence1, sequence2):
+        if a != b:
             match += 1
         else:
             pass
@@ -543,14 +546,14 @@ def pDistance(sequence1,sequence2):
     return score
 
 
-def jukesCantor(sequence1,sequence2):
+def jukesCantor(sequence1, sequence2):
     """
     Maximum likelihood estimate of the number of substitutions 
     between two sequences. p is described with the method 
     p-distance. d = -19/20 log(1 - p * 20/19)
     """
     exterior = -19 * 1.0 / 20
-    interior = 1 - pDistance(sequence1,sequence2) * 20 * 1.0 / 19
+    interior = 1 - pDistance(sequence1, sequence2) * 20 * 1.0 / 19
     score = exterior * log(interior)
     
     score = str(score)
@@ -560,7 +563,7 @@ def jukesCantor(sequence1,sequence2):
     
     return score
 
-def kimuraDistance(sequence1,sequence2):
+def kimuraDistance(sequence1, sequence2):
     """
     Kimura's distance. This is a rough-and-ready distance formula 
     for approximating PAM distance by simply measuring the fraction 
@@ -569,8 +572,8 @@ def kimuraDistance(sequence1,sequence2):
     d = - log_e (1 - p - 0.2 p^2 ). 
     """
     
-    p_distance = pDistance(sequence1,sequence2)
-    interior = (1 - p_distance - 0.2 * p_distance**2)
+    p_distance = pDistance(sequence1, sequence2)
+    interior = (1 - p_distance - 0.2 * p_distance ** 2)
     score = -ln(interior)
     
     score = str(score)
@@ -580,7 +583,7 @@ def kimuraDistance(sequence1,sequence2):
     
     return score
 
-def alignmentScore(sequence1,sequence2, score_matrix):
+def alignmentScore(sequence1, sequence2, score_matrix):
     """
     Distance (d) between two sequences (1, 2) is computed from 
     the pairwise alignment score between the two sequences (score12), 

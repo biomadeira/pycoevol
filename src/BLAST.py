@@ -1,12 +1,11 @@
-###############################################################################
+﻿###############################################################################
 # Encoding utf-8                                                              #
-# Created by F. Madeira, 2012                                                 #
+# F. Madeira and L. Krippahl, 2012                                            #
 # This code is part of Pycoevol distribution.                                 #
 # This work is public domain.                                                 #
 ###############################################################################
 
-from Parameters import psiblast_evalue, psiblast_identity, psiblast_coverage
-from Parameters import psiblast_threading
+from Parameters import LoadParameters as LP
 from os import remove
 from shutil import move
 from Bio import SeqIO, Entrez
@@ -15,7 +14,6 @@ from Bio.Blast import NCBIXML, NCBIWWW
 from Bio.Blast.Applications import NcbipsiblastCommandline
 Entrez.email = "entrez@mail.com"
 
-
 class psiblast:
     """
     Main code for psiblast search over internet or at local database.
@@ -23,85 +21,88 @@ class psiblast:
     Method for searching homologous sequences:
     PSI-Blast - Altschul et al, 1997
     """
-    def __init__(self, id1, id2, psiblast):
-        self.id1 = str(id1)
-        self.id2 = str(id2)
+    def __init__(self, id1, id2, psiblast, parameterfile, dirname):
+        self.id1 = id1
+        self.id2 = id2
         self.psiblast = psiblast
-    def __call__(self, id1, id2, psiblast):
-        self.id1 = str(id1)
-        self.id2 = str(id2)
+        self.parameterfile = parameterfile
+        self.dirname = dirname
+        
+    def __call__(self, id1, id2, psiblast, parameterfile, dirname):
+        self.id1 = id1
+        self.id2 = id2
         self.psiblast = psiblast
+        self.parameterfile = parameterfile
+        self.dirname = dirname
 
     def searchPSIBLAST(self, id, psiblast):
         "Psi-Blast over a local database or over the internet"
         
         if psiblast == "local":
-            # edit psiblast_evalue at Parameters.py
-            threads = psiblast_threading
-            evalue = psiblast_evalue
+            threads = LP(self.parameterfile, "psiblast_threading")
+            evalue = LP(self.parameterfile, "psiblast_evalue")
             reference_protein = "refseq_protein"
         
-            in_sequence = "./Data/" + id + ".fa"
+            in_sequence = self.dirname + id + ".fa"
             
-            output = "./Data/"+ id + ".xml"
+            output = self.dirname + id + ".xml"
             if threads == False:
-                psiblast = NcbipsiblastCommandline(query=in_sequence, 
-										 db=reference_protein, 
-										 outfmt=5,  
-										 threshold=evalue, 
+                psiblast = NcbipsiblastCommandline(query=in_sequence,
+										 db=reference_protein,
+										 outfmt=5,
+										 threshold=evalue,
 										 out=output) 
                 psiblast()
             else:
                 try:
                     threads = int(threads)
-                    psiblast = NcbipsiblastCommandline(query=in_sequence, 
-                                         db=reference_protein, 
-                                         outfmt=5,  
-                                         threshold=evalue, 
+                    psiblast = NcbipsiblastCommandline(query=in_sequence,
+                                         db=reference_protein,
+                                         outfmt=5,
+                                         threshold=evalue,
                                          out=output,
                                          num_threads=threads) 
                     psiblast()
                 except: 
-                    psiblast = NcbipsiblastCommandline(query=in_sequence, 
-                                         db=reference_protein, 
-                                         outfmt=5,  
-                                         threshold=evalue, 
+                    psiblast = NcbipsiblastCommandline(query=in_sequence,
+                                         db=reference_protein,
+                                         outfmt=5,
+                                         threshold=evalue,
                                          out=output) 
                     psiblast()
             
             try:
-                open("./Data/" + id + ".fasta")
+                open(self.dirname + id + ".fasta")
                 open.close()
-                remove("./Data/" + id + ".fa")
+                remove(self.dirname + id + ".fa")
             except: 
-                move("./Data/" + id + ".fa", "./Data/" + id + ".fasta")
+                move(self.dirname + id + ".fa", self.dirname + id + ".fasta")
         else:
-            # edit psiblast_evalue at Parameters.py
-            evalue = psiblast_evalue
+            evalue = LP(self.parameterfile, "psiblast_evalue")
             reference_protein = "refseq_protein"
             
-            in_sequence = "./Data/" + id + ".fa"
+            in_sequence = self.dirname + id + ".fa"
                 
-            for seq_record in SeqIO.parse(in_sequence, 
-                                          "fasta",IUPAC.protein):
+            for seq_record in SeqIO.parse(in_sequence,
+                                          "fasta", IUPAC.protein):
                 sequence = seq_record.seq
         
-                psiblast = NCBIWWW.qblast("blastp", 
-								    reference_protein, 
-								    sequence, 
-								    service="psi", 
+                psiblast = NCBIWWW.qblast("blastp",
+								    reference_protein,
+								    sequence,
+								    service="psi",
 								    expect=evalue,
 								    hitlist_size=500)
                 psiblast
                 
             try:
-                open("./Data/" + id + ".fasta")
+                open(self.dirname + id + ".fasta")
                 open.close()
-                remove("./Data/" + id + ".fa")
+                remove(self.dirname + id + ".fa")
             except: 
-                move("./Data/" + id + ".fa", "./Data/" + id + ".fasta")
+                move(self.dirname + id + ".fa", self.dirname + id + ".fasta")
 
-            output = "./Data/"+ id + ".xml"
+            output = self.dirname + id + ".xml"
             saveblast = open(output, "w")
             saveblast.write(psiblast.read())
             saveblast.close()
@@ -111,25 +112,24 @@ class psiblast:
         "Checks if the input file is a valid XML"
         
         try:
-            input ="./Data/" + id + ".xml"
+            input = self.dirname + id + ".xml"
             input_xml = open(input, "r")
             xml = input_xml.readline()
             input_xml.close()
             if xml[0:5] == "<?xml":
                 pass
             else:                             
-                raise StandardError, "%s - Invalid xml" %(input)
+                raise StandardError, "%s - Invalid xml" % (input)
         except:
-            raise StandardError, "%s - Invalid xml or not found" %(input)
+            raise StandardError, "%s - Invalid xml or not found" % (input)
 
     def sequencesXML(self, id, psiblast):
         "Extracts records from xml and writes FASTA (full-length) sequences"
         
-        # edit psiblast_identity and psiblast_coverage at Parameters.py
-        thresh_identity = psiblast_identity
-        thresh_coverage = psiblast_coverage
+        thresh_identity = LP(self.parameterfile, "psiblast_identity")
+        thresh_coverage = LP(self.parameterfile, "psiblast_coverage")
         
-        input ="./Data/" + id + ".xml"
+        input = self.dirname + id + ".xml"
         input_xml = open(input, "r")
         
         hits = []
@@ -145,17 +145,24 @@ class psiblast:
                     sbjct1 = positives * 1.0
                     coverage = sbjct1 / query * 100
                     sbjct2 = identities * 1.0
-                    identity =sbjct2 / query * 100
+                    identity = sbjct2 / query * 100
                     if coverage > thresh_coverage and identity > thresh_identity:
                         hits.append(hit_id)
         input_xml.close()
         
         if hits == []:
-            raise StandardError, "%s - No Hits found in PSI-BLAST search" %(input) 
+            raise StandardError, "%s - No Hits found in PSI-BLAST search" % (input) 
                  
         for hit_id in hits:
             gi = hit_id[hit_id.find("id|") + 4:hit_id.find("|ref")]
-            efetch = Entrez.efetch(db="protein", id=gi, rettype="fasta")
+            try:
+                efetch = Entrez.efetch(db="protein", id=gi, rettype="fasta")
+            except:
+                try:
+                    efetch = Entrez.efetch(db="protein", id=gi, rettype="fasta")
+                except:
+                    efetch = Entrez.efetch(db="protein", id=gi, rettype="fasta")
+                efetch = Entrez.efetch(db="protein", id=gi, rettype="fasta")
             for values in efetch:
                 description = values
                 break
@@ -169,12 +176,13 @@ class psiblast:
                     species = str(organism[0] + "_" + organism[1])
                 else:
                     species = str(organism[0] + "_" + "sp.")
-                output = "./Data/" + id + ".blast"
+                output = self.dirname + id + ".blast"
                 blast = open(output, "a")
                 blast.write("\n" + ">" + species + "\n" + sequence + "\n")
                 blast.close()
             except: 
-                raise StandardError, "%s - No Hits found in PSI-BLAST search" %(input)    
+                raise StandardError, "%s - No Hits found in PSI-BLAST search" % (input)    
             
  
         
+

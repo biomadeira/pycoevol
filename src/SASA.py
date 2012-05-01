@@ -1,9 +1,10 @@
-###############################################################################
+﻿###############################################################################
 # Encoding utf-8                                                              #
-# Created by F. Madeira, 2012                                                 #
+# F. Madeira and L. Krippahl, 2012                                            #
 # This code is part of Pycoevol distribution.                                 #
 # This work is public domain.                                                 #
 ###############################################################################
+
 """Adapted from Surface Area (ASA) - (C) Bosco Ho 
 http://boscoh.com/protein/calculating-the-solvent-accessible-surface-area-asa
 
@@ -42,9 +43,9 @@ def generateSpherePoints(n):
     offset = 2 / float(n)
     for k in range(int(n)):
         y = k * offset - 1 + (offset / 2)
-        r = sqrt(1 - y*y)
+        r = sqrt(1 - y * y)
         phi = k * inc
-        points.append([cos(phi)*r, y, sin(phi)*r])
+        points.append([cos(phi) * r, y, sin(phi) * r])
     return points
 
 
@@ -56,7 +57,7 @@ def findNeighborIndices(atoms, probe, k):
     atom_k = atoms[k]
     radius = atom_k.radius + probe + probe
     indices = range(k)
-    indices.extend(range(k+1, len(atoms)))
+    indices.extend(range(k + 1, len(atoms)))
     for i in indices:
         atom_i = atoms[i]
         dist = pos_distance(atom_k.pos, atom_i.pos)
@@ -85,9 +86,9 @@ def calculateSASA(atoms, probe, n_sphere_point=960):
         for point in sphere_points:
             is_accessible = True
 
-            test_point.x = point[0]*radius + atom_i.pos.x
-            test_point.y = point[1]*radius + atom_i.pos.y
-            test_point.z = point[2]*radius + atom_i.pos.z
+            test_point.x = point[0] * radius + atom_i.pos.x
+            test_point.y = point[1] * radius + atom_i.pos.y
+            test_point.z = point[2] * radius + atom_i.pos.z
 
             cycled_indices = range(j_closest_neighbor, n_neighbor)
             cycled_indices.extend(range(j_closest_neighbor))
@@ -96,14 +97,14 @@ def calculateSASA(atoms, probe, n_sphere_point=960):
                 atom_j = atoms[neighbor_indices[j]]
                 r = atom_j.radius + probe
                 diff_sq = pos_distance_sq(atom_j.pos, test_point)
-                if diff_sq < r*r:
+                if diff_sq < r * r:
                     j_closest_neighbor = j
                     is_accessible = False
                     break
             if is_accessible:
                 n_accessible_point += 1
 
-        area = const*n_accessible_point*radius*radius 
+        area = const * n_accessible_point * radius * radius 
         areas.append(area)
     return areas
 
@@ -119,7 +120,7 @@ def pos_distance_sq(p1, p2):
     x = p1.x - p2.x
     y = p1.y - p2.y
     z = p1.z - p2.z
-    return x*x + y*y + z*z;
+    return x * x + y * y + z * z;
 
 def pos_distance(p1, p2):
     return sqrt(pos_distance_sq(p2, p1))
@@ -253,13 +254,13 @@ class Atom:
         self.num = 0
     
     def pdb_str(self):
-        return str(self.chain_id) + "\t" + str(self.res_type) + "\t" +\
+        return str(self.chain_id) + "\t" + str(self.res_type) + "\t" + \
             str(self.res_num) + "\t" + str(self.bfactor)
                              
     def __str__(self):
         return "%s%s-%s (% .1f % .1f % .1f)" \
-                        %    (self.res_type, self.res_num, 
-                                self.type, self.pos.x, 
+                        % (self.res_type, self.res_num,
+                                self.type, self.pos.x,
                                 self.pos.y, self.pos.z)
         
 class Vector3d:
@@ -300,10 +301,10 @@ class Vector3d:
         return Vector3d(self.x, self.y, self.z)
 
     def length_sq(self):
-        return self.x*self.x + self.y*self.y + self.z*self.z
+        return self.x * self.x + self.y * self.y + self.z * self.z
 
     def length(self):
-        return sqrt(self.x*self.x + self.y*self.y + self.z*self.z)
+        return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
 
     def scale(self, scale):
         self.x *= scale
@@ -352,4 +353,5 @@ def is_near_zero(a):
     return a < SMALL
   
 def dot(a, b):
-    return a.x*b.x + a.y*b.y + a.z*b.z
+    return a.x * b.x + a.y * b.y + a.z * b.z
+

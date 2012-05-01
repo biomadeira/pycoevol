@@ -1,6 +1,6 @@
 ###############################################################################
 # Encoding utf-8                                                              #
-# Created by F. Madeira, 2012                                                 #
+# F. Madeira and L. Krippahl, 2012                                            #
 # This code is part of Pycoevol distribution.                                 #
 # This work is public domain.                                                 #
 ###############################################################################
@@ -11,18 +11,19 @@ class information:
     """
     Main code for generating extended results.
     """
-    def __init__(self, id1, id2, chain1, chain2):
-        self.id1 = str(id1)
-        self.id2 = str(id2)
-        self.chain1 = str(chain1)
-        self.chain2 = str(chain2)
-        
-    def __call__(self, id1, id2, chain1, chain2):
-        self.id1 = str(id1)
-        self.id2 = str(id2)
-        self.chain1 = str(chain1)
-        self.chain2 = str(chain2)
-    
+    def __init__(self, id1, id2, chain1, chain2, dirname):
+        self.id1 = id1
+        self.id2 = id2
+        self.chain1 = chain1
+        self.chain2 = chain2
+        self.dirname = dirname
+                
+    def __call__(self, id1, id2, chain1, chain2, dirname):
+        self.id1 = id1
+        self.id2 = id2
+        self.chain1 = chain1
+        self.chain2 = chain2
+        self.dirname = dirname
     
     def getInfo(self, id):
         "Creates info about the sequences, psiblast, organisms, etc"
@@ -49,15 +50,14 @@ class information:
             organisms += 1
 
         
-        output = "./Results/results.txt"
+        output = self.dirname + "results.txt"
         out = open(output, "a")
-        print >> out, "ID"+ "\t" + "LengSeq" + "\t" + "NHits" + "\t" +  \
+        print >> out, "ID" + "\t" + "LengSeq" + "\t" + "NHits" + "\t" + \
         "NOrganisms"
         print >> out, str(id) + "\t" + str(length) + "\t" + \
-        str(hit)  + "\t" + str(organisms) + "\n"
+        str(hit) + "\t" + str(organisms) + "\n"
         out.close()
         
-
     def getSIFTS(self, id, chain):
         """
         Web_Services based on SIFTS @ 
@@ -177,15 +177,15 @@ class information:
                 l = l.split("\t")
                 pubm = str(l[2])
         
-        output = "./Results/bioresults.txt"
+        output = self.dirname + "bioresults.txt"
         out = open(output, "a")
         print >> out, "Protein_ID" + "\t" + "Uniprot" + "\t" + "SCOP" + "\t" + \
         "CATH" + "\t" + "Enzyme_EC" + "\t" + "Interpro" + "\t" + "Pfam" + "\t" + \
-        "Taxonomy_id"+ "\t" + "Taxonomy_name"+ "\t" + "Pubmed" 
+        "Taxonomy_id" + "\t" + "Taxonomy_name" + "\t" + "Pubmed" 
         
         print >> out, str(id) + "\t" + str(unip) + "\t" + \
         str(scop) + "\t" + str(cath) + "\t" + str(enz) + "\t" + \
-        str(inter) + "\t" + str(pfam)+ "\t" + str(taxid)+ "\t" + \
+        str(inter) + "\t" + str(pfam) + "\t" + str(taxid) + "\t" + \
         str(taxnm) + "\t" + str(pubm) + "\n"
         out.close()
         

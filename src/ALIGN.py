@@ -1,15 +1,12 @@
-###############################################################################
+﻿###############################################################################
 # Encoding utf-8                                                              #
-# Created by F. Madeira, 2012                                                 #
+# F. Madeira and L. Krippahl, 2012                                            #
 # This code is part of Pycoevol distribution.                                 #
 # This work is public domain.                                                 #
 ###############################################################################
 
-from Parameters import clustalw_gap_opening, clustalw_gap_extension
-from Parameters import clustalw_distance_matrix
-from Parameters import muscle_max_iteration
-from Parameters import mafft_configuration, mafft_threading
-from Parameters import alignment_score
+from Parameters import LoadParameters as LP
+from src.UTILS import charge, charge_his, polarity, hydropathy
 from os import remove, system
 from shutil import copyfile
 from itertools import combinations
@@ -31,37 +28,42 @@ class alignment:
     Sum-of-Pairs - Murata et al, 1985
     TODO: Circular Sum - Gonnet et al, 2000
     """
-    def __init__(self, id1, id2, alignment):
-        self.id1 = str(id1)
-        self.id2 = str(id2)
+    def __init__(self, id1, id2, alignment, parameterfile, dirname):
+        self.id1 = id1
+        self.id2 = id2
         self.alignment = alignment
-    def __call__(self, id1, id2, alignment):
-        self.id1 = str(id1)
-        self.id2 = str(id2)
+        self.parameterfile = parameterfile
+        self.dirname = dirname
+        
+    def __call__(self, id1, id2, alignment, parameterfile, dirname):
+        self.id1 = id1
+        self.id2 = id2
         self.alignment = alignment
+        self.parameterfile = parameterfile
+        self.dirname = dirname
         
 
     def computeAlignment(self, id, alignment):
         "Computes multiple sequence alignment with inputed method"
         
         if alignment == "clustalw":
-            gop = clustalw_gap_opening
-            gep = clustalw_gap_extension
-            d_matrix = clustalw_distance_matrix
+            gop = LP(self.parameterfile, "clustalw_gap_opening")
+            gep = LP(self.parameterfile, "clustalw_gap_extension")
+            d_matrix = LP(self.parameterfile, "clustalw_distance_matrix")
             
-            input_sequences = "./Data/" + id + ".fasta"
-            output_align = "./Data/" + id + ".aln"
-            output_fasta = "./Data/" + id + "_clustalw.fasta"
-            output_tree = "./Data/" + id + ".dnd"
-            clustalw = ClustalwCommandline(infile=input_sequences, 
-                                           outfile=output_align, 
-                                           newtree=output_tree, 
-                                           align="input",  
-                                           seqnos="ON", 
-                                           outorder="input", 
-                                           type="PROTEIN", 
-                                           pwmatrix=d_matrix, 
-                                           gapopen=gop, 
+            input_sequences = self.dirname + id + ".fasta"
+            output_align = self.dirname + id + ".aln"
+            output_fasta = self.dirname + id + "_clustalw.fasta"
+            output_tree = self.dirname + id + ".dnd"
+            clustalw = ClustalwCommandline(infile=input_sequences,
+                                           outfile=output_align,
+                                           newtree=output_tree,
+                                           align="input",
+                                           seqnos="ON",
+                                           outorder="input",
+                                           type="PROTEIN",
+                                           pwmatrix=d_matrix,
+                                           gapopen=gop,
                                            gapext=gep) 
             clustalw()
             AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
@@ -72,15 +74,15 @@ class alignment:
                 pass
             
         elif alignment == "muscle":
-            iteration = muscle_max_iteration
+            iteration = LP(self.parameterfile, "muscle_max_iteration")
             
-            input_sequences = "./Data/" + id + ".fasta"
-            output_align = "./Data/" + id + "_muscle.aln"
-            output_fasta = "./Data/" + id + "_muscle.fasta"
+            input_sequences = self.dirname + id + ".fasta"
+            output_align = self.dirname + id + "_muscle.aln"
+            output_fasta = self.dirname + id + "_muscle.fasta"
             
-            muscle = MuscleCommandline(input=input_sequences, 
+            muscle = MuscleCommandline(input=input_sequences,
                                        out=output_align,
-                                       clwstrict=True, 
+                                       clwstrict=True,
                                        maxiters=iteration)
             muscle()
             AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
@@ -90,19 +92,19 @@ class alignment:
                 pass
             
             organism_order = []
-            input_sequences = "./Data/" + id + ".fasta"
+            input_sequences = self.dirname + id + ".fasta"
             align = SeqIO.parse(input_sequences, "fasta", IUPAC.protein)
             for record in align:
                 org = record.description
                 organism_order.append(org)
                 
             rec = dict()
-            output_fasta = "./Data/" + id + "_muscle.fasta"
+            output_fasta = self.dirname + id + "_muscle.fasta"
             align = SeqIO.parse(output_fasta, "fasta", IUPAC.protein)
             for record in align:
                 org = str(record.description)
                 seq = str(record.seq)
-                rec[org]= seq
+                rec[org] = seq
             
             fasta = open(output_fasta, "w")
             fasta.close()
@@ -113,10 +115,10 @@ class alignment:
             fasta.close()
             
         else:
-            configuration = mafft_configuration
-            threads = mafft_threading
-            input_sequences = "./Data/" + id + ".fasta"
-            output_fasta = "./Data/" + id + "_mafft.fasta"
+            configuration = LP(self.parameterfile, "mafft_configuration")
+            threads = LP(self.parameterfile, "mafft_threading")
+            input_sequences = self.dirname + id + ".fasta"
+            output_fasta = self.dirname + id + "_mafft.fasta"
             
             if configuration == "fftnsi":
                 if threads == False:
@@ -127,7 +129,7 @@ class alignment:
                     try:
                         threads = int(threads)
                         fftnsi = "mafft --retree 2 --maxiterate 1000\
-                         --inputorder --threads %i " %(threads)
+                         --inputorder --threads %i " % (threads)
                         mafft = system(fftnsi + input_sequences + ">" + output_fasta)
                         mafft
                     except:
@@ -143,7 +145,7 @@ class alignment:
                     try:
                         threads = int(threads)
                         linsi = "mafft --localpair --maxiterate 1000\
-                         --inputorder --threads %i " %(threads)
+                         --inputorder --threads %i " % (threads)
                         mafft = system(linsi + input_sequences + ">" + output_fasta)
                         mafft
                     except:
@@ -163,9 +165,10 @@ class alignment:
         new_align_ord = []
         new_align_concate = []
         self.cut_alignment = []
+        aa_red = LP(self.parameterfile, "alphabet_reduction")
         
         if alignment != "custom":
-            input = "./Data/" + id + "_" + alignment + ".fasta"
+            input = self.dirname + id + "_" + alignment + ".fasta"
             alignment = AlignIO.read(input, "fasta")
             for record in alignment:
                 key = record.id
@@ -210,14 +213,21 @@ class alignment:
                 new_align_concate.append(list)
     
             for seq in new_align_concate:
-                self.cut_alignment.append(seq)
+                if aa_red != False:
+                    red = [AR(e, aa_red) for e in seq]
+                    new_seq = ""
+                    for i in red:
+                        new_seq += str(i)
+                    self.cut_alignment.append(new_seq)
+                else:
+                    self.cut_alignment.append(seq) 
                 
             return self.cut_alignment
         
         else:
-            output = "./Data/" + id + "_" + alignment + ".fasta"
-            copyfile("./Data/" + file, output)
-            input = "./Data/" + id + "_" + alignment + ".fasta"
+            output = self.dirname + id + "_" + alignment + ".fasta"
+            copyfile(self.dirname + file, output)
+            input = self.dirname + id + "_" + alignment + ".fasta"
            
             alignment = AlignIO.read(input, "fasta")
             for record in alignment:
@@ -256,8 +266,15 @@ class alignment:
                 new_align_concate.append(list)
     
             for seq in new_align_concate:
-                self.cut_alignment.append(seq)
-                
+                if aa_red != False:
+                    red = [AR(e, aa_red) for e in seq]
+                    new_seq = ""
+                    for i in red:
+                        new_seq += str(i)
+                    self.cut_alignment.append(new_seq)
+                else:
+                    self.cut_alignment.append(seq)      
+               
             return self.cut_alignment
             
      
@@ -275,10 +292,10 @@ class alignment:
         
         (To Do - Circular Sum by Gonnet et al, 2000)
         """
-        score = alignment_score
+        score = LP(self.parameterfile, "alignment_score")
         
         if score == "sumofpairs":
-            input = "./Data/" + id + "_" + alignment + ".fasta"
+            input = self.dirname + id + "_" + alignment + ".fasta"
             sequences = []
             input_sequences = SeqIO.parse(input, "fasta", IUPAC.protein)
             for record in input_sequences:
@@ -309,18 +326,18 @@ def pairwiseScore(seq1, seq2):
     incr_top = 0
     incr_bottom = 0
     pairwise_score = 0
-    for i,j in zip(range(len(seq1)), range(len(seq2))):
+    for i, j in zip(range(len(seq1)), range(len(seq2))):
         aa1 = seq1[i]
         aa2 = seq2[j] 
-        if aa1=="-" and aa2 =="-" :
+        if aa1 == "-" and aa2 == "-" :
             pairwise_score += 0
-        elif aa1!="-" and aa2!="-":
+        elif aa1 != "-" and aa2 != "-":
             pairwise_score += float(matchScore(aa1, aa2, "BLOSUM62"))
-        elif aa1=="-" and aa2!="-":
+        elif aa1 == "-" and aa2 != "-":
             try:
-                aa11 = seq1[i+1]
-                aa22 = seq2[j+1]
-                if aa11=="-" and aa22!="-":
+                aa11 = seq1[i + 1]
+                aa22 = seq2[j + 1]
+                if aa11 == "-" and aa22 != "-":
                     incr_top += 1
                 else: 
                     pairwise_score += gap + incr_top * incr_top
@@ -328,11 +345,11 @@ def pairwiseScore(seq1, seq2):
             except: 
                 pairwise_score += gap
                 pass
-        elif aa1!="-" and aa2=="-":
+        elif aa1 != "-" and aa2 == "-":
             try:
-                aa11 = seq1[i+1]
-                aa22 = seq2[j+1]
-                if aa11!="-" and aa22=="-":
+                aa11 = seq1[i + 1]
+                aa22 = seq2[j + 1]
+                if aa11 != "-" and aa22 == "-":
                     incr_bottom += 1
                 else: 
                     pairwise_score += gap + incr_bottom * incr_bottom
@@ -389,5 +406,21 @@ def mapMatrix(matrix):
     input_matrix.close()
     
     return score_matrix
+    
+def AR(aminoacid, method):
+    """Performs alphabet reduction.
+    Alphabets: charge, charge_his, polarity, hydropathy
+    """
+
+    if method == "charge":
+        return charge[aminoacid]
+    elif method == "charge_his":
+        return charge_his[aminoacid]
+    elif method == "polarity":
+        return polarity[aminoacid]
+    elif method == "hydropathy":
+        return hydropathy[aminoacid]
+    else:
+        return aminoacid
     
         

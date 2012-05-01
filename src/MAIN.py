@@ -1,6 +1,6 @@
 ###############################################################################
 # Encoding utf-8                                                              #
-# Created by F. Madeira, 2012                                                 #
+# F. Madeira and L. Krippahl, 2012                                            #
 # This code is part of Pycoevol distribution.                                 #
 # This work is public domain.                                                 #
 ###############################################################################
@@ -11,39 +11,44 @@ from src.ORGANISM import organism
 from src.ALIGN import alignment
 from src.COEVOL import coevolution
 from src.INFO import information
-from Parameters import results_sifts
+from Parameters import LoadParameters as LP
 
 class main:
     """
-    Main script caller
+    Main script caller.
     """
-    def __init__(self, file1, file2, id1, id2, chain1, chain2, 
-                 psiblast, alignment, coevolution):
-        self.file1 = file1
-        self.file2 = file2
-        self.id1 = id1
-        self.id2 = id2
-        self.chain1 = chain1
-        self.chain2 = chain2
-        self.psiblast = psiblast
-        self.alignment = alignment
-        self.coevolution = coevolution
-    def __call__(self, file1, file2, id1, id2, chain1, chain2, 
-                 psiblast, alignment, coevolution):
-        self.file1 = file1
-        self.file2 = file2
-        self.id1 = id1
-        self.id2 = id2
-        self.chain1 = chain1
-        self.chain2 = chain2
-        self.psiblast = psiblast
-        self.alignment = alignment
-        self.coevolution = coevolution
-    
+    def __init__(self, file1, file2, id1, id2, chain1, chain2, parameterfile, 
+                 psiblast, alignment, coevolution, dirname):
+        self.file1 = str(file1)
+        self.file2 = str(file2)
+        self.id1 = str(id1)
+        self.id2 = str(id2)
+        self.chain1 = str(chain1)
+        self.chain2 = str(chain2)
+        self.parameterfile= str(parameterfile)
+        self.psiblast = str(psiblast)
+        self.alignment = str(alignment)
+        self.coevolution = str(coevolution)
+        self.dirname = str(dirname)
+        
+    def __call__(self, file1, file2, id1, id2, chain1, chain2, parameterfile, 
+                 psiblast, alignment, coevolution, dirname):
+        self.file1 = str(file1)
+        self.file2 = str(file2)
+        self.id1 = str(id1)
+        self.id2 = str(id2)
+        self.chain1 = str(chain1)
+        self.chain2 = str(chain2)
+        self.parameterfile= str(parameterfile)
+        self.psiblast = str(psiblast)
+        self.alignment = str(alignment)
+        self.coevolution = str(coevolution)
+        self.dirname = str(dirname)
     
     def sequenceSripts(self):
         seq = sequence(self.file1, self.file2, self.id1, self.id2, 
-                       self.chain1, self.chain2)
+                       self.chain1, self.chain2, self.parameterfile, 
+                       self.dirname)
         if self.id1 != self.id2:
             if self.chain1 == "" and self.chain2 == "":
                 seq.validFASTA(self.file1, self.id1)
@@ -77,8 +82,10 @@ class main:
     
     def psiblastSripts(self):
         seq = sequence(self.file1, self.file2, self.id1, self.id2, 
-                       self.chain1, self.chain2)
-        blast = psiblast(self.id1, self.id2, self.psiblast)
+                       self.chain1, self.chain2, self.parameterfile,
+                       self.dirname)
+        blast = psiblast(self.id1, self.id2, self.psiblast,
+                         self.parameterfile, self.dirname)
         if self.id1 != self.id2:
             blast.searchPSIBLAST(self.id1,self.psiblast)
             blast.searchPSIBLAST(self.id2,self.psiblast)
@@ -114,7 +121,8 @@ class main:
         return
     
     def organismSripts(self):
-        org = organism(self.id1, self.id2, self.psiblast)
+        org = organism(self.id1, self.id2, self.psiblast,
+                       self.parameterfile, self.dirname)
         if self.id1 != self.id2:
             org.uniqueOrganism(self.id1, self.id2)
             org.pairwiseDistance(self.id1, self.id2)
@@ -128,7 +136,8 @@ class main:
         return
     
     def alignmentSripts(self): 
-        aln = alignment(self.id1, self.id2, self.alignment)
+        aln = alignment(self.id1, self.id2, self.alignment, 
+                        self.parameterfile, self.dirname)
         if self.id1 != self.id2:
             aln.computeAlignment(self.id1, self.alignment)
             aln.computeAlignment(self.id2, self.alignment)
@@ -143,8 +152,9 @@ class main:
     
     def coevolutionSripts(self):
         coevol = coevolution(self.file1, self.file2, self.id1, self.id2, 
-                             self.chain1, self.chain2, 
-                             self.alignment, self.coevolution)
+                             self.chain1, self.chain2, self.alignment, 
+                             self.coevolution, self.parameterfile, 
+                             self.dirname)
         if self.id1 != self.id2:
             coevol.coevolAnalysis(self.file1, self.file2,
                                   self.id1, self.id2, 
@@ -175,8 +185,12 @@ class main:
                                             self.alignment, self.coevolution)
         return
     
-    def infoScripts(self):
-        info = information(self.id1, self.id2,self.chain1, self.chain2)
+    def infoScripts(self, SIFTS):
+        info = information(self.id1, self.id2,self.chain1, self.chain2, 
+                           self.dirname)
+        
+        results_sifts = LP(self.parameterfile, "results_sifts")
+        
         if self.id1 != self.id2:
             if self.chain1 == "" and self.chain2 == "":
                 info.getInfo(self.id1)
@@ -184,7 +198,7 @@ class main:
             else:
                 info.getInfo(self.id1)
                 info.getInfo(self.id2)
-                if results_sifts == True:
+                if results_sifts == True and SIFTS==True:
                     info.getSIFTS(self.id1, self.chain1)
                     info.getSIFTS(self.id2, self.chain2)
                 else: pass
@@ -195,13 +209,13 @@ class main:
                 if self.chain1 != self.chain2:
                     info.getInfo(self.id1 + "_1")
                     info.getInfo(self.id1 + "_2")
-                    if results_sifts == True:
+                    if results_sifts == True and SIFTS==True:
                         info.getSIFTS(self.id1 + "_1", self.chain1)
                         info.getSIFTS(self.id1 + "_2", self.chain2)
                     else: pass
                 else:
                     info.getInfo(self.id1 + "_1")
-                    if results_sifts == True:
+                    if results_sifts == True and SIFTS==True:
                         info.getSIFTS(self.id1 + "_1", self.chain1)
                     else: pass
         return

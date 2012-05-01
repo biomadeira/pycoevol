@@ -1,12 +1,21 @@
-# Encoding utf-8
-# Created by F. Madeira, 2012
-# This code is part of Pycoevol distribution.
-# This work is public domain. 
+﻿###############################################################################
+# Encoding utf-8                                                              #
+# F. Madeira and L. Krippahl, 2012                                            #
+# This code is part of Pycoevol distribution.                                 #
+# This work is public domain.                                                 #
+###############################################################################
+
 """
 Utilities used in some routines.
 """
 
-aa = ['A','C','D','E','F','G','H', 'K','I','L','M','N','P','Q','R','S','T','V','Y','W']
+import sys
+
+def Flash(message):
+    print message
+    sys.stdout.flush()
+
+aa = ['A','C','D','E','F','G','H','K','I','L','M','N','P','Q','R','S','T','V','Y','W']
 
 aa_list = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'LYS', 'ILE', 'LEU',
            'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'VAL', 'TYR', 'TRP']
@@ -27,6 +36,47 @@ aa_acid = ['D','E']
 aa_polar = ['S','T','Q','C','E','Y','D','K','H','R','N']
 aa_non_polar = ['A','V','L','I','G','W','F','P','M']
 aa_charged = ['H','R','K','D','E']
+
+# amino acid reduction alphabets
+# Caporaso, J. G., Smit, S., Easton, B. C., Hunter, L., Huttley, G. a, 
+# Knight, R. (2008). Detecting coevolution without phylogenetic trees? 
+# Tree-ignorant metrics of coevolution perform as well as tree-aware 
+# metrics. BMC evolutionary biology, 8, 327. doi:10.1186/1471-2148-8-327
+# {'A', 'D', 'K'} 
+charge = {'A':'A','C':'A','D':'D',
+          'E':'D','F':'A','G':'A',
+          'H':'A','K':'K','I':'A',
+          'L':'A','M':'A','N':'A',
+          'P':'A','Q':'A','R':'K',
+          'S':'A','T':'A','V':'A',
+          'Y':'A','W':'A','-':'-'}
+
+# {'A','D','K'}
+charge_his = {'A':'A','C':'A','D':'D',
+              'E':'D','F':'A','G':'A',
+              'H':'K','K':'K','I':'A',
+              'L':'A','M':'A','N':'A',
+              'P':'A','Q':'A','R':'K',
+              'S':'A','T':'A','V':'A',
+              'Y':'A','W':'A','-':'-'}
+
+# {'A','D','G','K'}
+polarity = {'A':'A','C':'G','D':'D',
+              'E':'D','F':'A','G':'G',
+              'H':'K','K':'K','I':'A',
+              'L':'A','M':'A','N':'G',
+              'P':'A','Q':'G','R':'K',
+              'S':'G','T':'G','V':'A',
+              'Y':'G','W':'A','-':'-'}
+
+# {'A','D','G'} 
+hydropathy = {'A':'A','C':'A','D':'D',
+              'E':'D','F':'A','G':'G',
+              'H':'D','K':'D','I':'A',
+              'L':'A','M':'A','N':'D',
+              'P':'A','Q':'D','R':'D',
+              'S':'G','T':'G','V':'A',
+              'Y':'G','W':'G','-':'-'}
 
 # Hydrophobicity scale:
 # Kyte J and Doolittle RF: A simple method for displaying the 

@@ -1,17 +1,21 @@
 ﻿###############################################################################
 # Encoding utf-8                                                              #
-# Created by F. Madeira, 2012                                                 #
+# F. Madeira and L. Krippahl, 2012                                            #
 # This code is part of Pycoevol distribution.                                 #
 # This work is public domain.                                                 #
 ###############################################################################
 #TODO: 
 # Interaction maps
 
+import os
 import sys
 from src import MAIN
+from Parameters import LoadParameters as LP
+from optparse import OptionParser
+from Bio.Align.Applications import ClustalwCommandline
 
 def printUsage():
-    "Prints the usage"
+    """Prints the usage - DEPRECATED"""
     __version__ = "beta"
     
     Usage = \
@@ -21,60 +25,96 @@ def printUsage():
     Pycoevol: A Python workflow to study protein-protein coevolution 
     and interaction.
 
-    Pycoevol.py   -input1 -input2 -psiblast -alignment -coevolution
+    Pycoevol.py   input1 input2 
        
-    input1        -seq1.fasta (-seqID1), -pdb1.pdb:A (-PDBID1:A)   
-                  or -align1.fasta (where A is the chain designator)                
-    input2        -seq2.fasta (-seqID2), -pdb2.pdb:B (-PDBID2:B)  
+    input1        seq1.fasta (-seqID1), pdb1.pdb:A (-PDBID1:A)   
+                  or align1.fasta (where A is the chain designator)                
+    input2        seq2.fasta (seqID2), -pdb2.pdb:B (-PDBID2:B)  
                   or -align2.fasta (where B is the chain designator) 
-    psiblast      -internet, -local or -custom (NCBI's PSIBLAST and 
+    -p --psiblast
+                  internet, local or custom (NCBI's PSIBLAST and 
                   local database are optional) 
-    alignment     -clustalw, -muscle, -mafft or -custom (MUSCLE and  
+    -a --alignment
+                  clustalw, muscle, mafft or custom (MUSCLE and  
                   MAFFT are optional) 
-    coevolution   -mi, -mie, -rcwmi,-cpvnmie, -cpvn, -clm, -vol
-                  -omes, -pearson, -spearman, -mcbasc, -quartets,
-                  -sca or -elsc
-    help          -h or -help
+    -c --coevolution
+                  mi, mie, rcwmi, cpvnmie, cpvn, clm, vol
+                  omes, pearson, spearman, mcbasc, quartets,
+                  sca or elsc
+    -x --chain
+                  chain identifier (in same order as input file). Default A
+    -i --id
+                  identifier for each protein, in same order as input files.
+    -h --help
                  
     Check the README.md for further details.
-    """ %__version__
+    """ % __version__
     print Usage
         
 def pycoevolRun():
     "Routine which chooses the proper scripts given the input commands"
-    main = MAIN.main(file1, file2,id1, id2, chain1, chain2, 
-                     psiblast, alignment, coevolution)
+    main = MAIN.main(file1, file2, id1, id2, chain1, chain2, parameterfile,
+                     psiblast, alignment, coevolution, dirname)
     
     if psiblast == "custom" and alignment == "custom":
+        print 'Coevolution scripts...'
+        sys.stdout.flush()
         main.coevolutionSripts()
+        print '... OK'
     else:
+        print 'Sequence scripts...'
+        sys.stdout.flush()
         main.sequenceSripts()
-        main.psiblastSripts()
-        main.organismSripts()
-        main.alignmentSripts()
-        main.coevolutionSripts()
-        main.infoScripts()
+        print '... OK'
         
-    print "Analysis complete!"
+        print 'BLAST scripts...'
+        sys.stdout.flush()
+        main.psiblastSripts()
+        print '... OK'
+        
+        print 'Organism scripts...'
+        sys.stdout.flush()
+        main.organismSripts()
+        print '... OK'
+        
+        print 'Alignment scripts...'
+        sys.stdout.flush()
+        main.alignmentSripts()
+        print '... OK'
+        
+        print 'Coevolution scripts...'
+        sys.stdout.flush()
+        main.coevolutionSripts()
+        print '... OK'
+        
+        print 'Info scripts...'
+        sys.stdout.flush()
+        main.infoScripts(SIFTS)
+        print '... OK'
     return
    
 def checkArguments():
     "Checks if the input commands are valid"
     try:
-        input =str("./Data/" + file1)
-        file = open(input,"r")
+        input = str("./Data/" + file1)
+        file = open(input, "r")
         file.close()
     except:
         #raise StandardError, "ERROR: File no.1 is not acessible"
         pass
     
     try:
-        input =str("./Data/" + file2)
-        file = open(input,"r")
+        input = str("./Data/" + file2)
+        file = open(input, "r")
         file.close() 
     except:
         #raise StandardError, "ERROR: File no.2 is not acessible"
         pass
+    
+    if len(chain1) <= 2 and len(chain2) <= 2:
+        pass
+    else:
+        raise StandardError, "ERROR: Chains' length must be = 1"
     
     if psiblast != 'internet' and psiblast != 'local' and psiblast != 'custom':
         raise StandardError, "ERROR: PSI-Blast: Type 'internet', 'local'\
@@ -97,6 +137,7 @@ def checkArguments():
         '-spearman', '-mcbasc', '-quartets', '-sca' or '-elsc'"
 
 def checkDependencies():
+    "Checks the import of mandatory python modules and clustalw"
     try: 
         import Bio
         del Bio
@@ -114,7 +155,48 @@ def checkDependencies():
         del matplotlib
     except ImportError:
         raise ImportError, "ERROR: Unable to import Matplotlib"
+    
+    try:
+        input = "./src/tools/clustalw/test/test.fasta"
+        clustalw = ClustalwCommandline(infile=input) 
+        clustalw()
+        os.remove("./src/tools/clustalw/test/test.aln")
+        os.remove("./src/tools/clustalw/test/test.dnd")
+    except:
+        raise StandardError, "ERROR: Unable to run ClustalW"
+        
 
+def checkSIFTS():
+    "Checks the availability of SIFTS files"
+    global SIFTS
+    try:
+        input = str("./SIFTS/pdb_chain_scop_uniprot.lst")
+        file = open(input, "r")
+        file.close()
+        input = str("./SIFTS/pdb_chain_cath_uniprot.lst")
+        file = open(input, "r")
+        file.close()
+        input = str("./SIFTS/pdb_chain_enzyme.lst")
+        file = open(input, "r")
+        file.close()
+        input = str("./SIFTS/pdb_chain_interpro.lst")
+        file = open(input, "r")
+        file.close()
+        input = str("./SIFTS/pdb_chain_pfam.lst")
+        file = open(input, "r")
+        file.close()
+        input = str("./SIFTS/pdb_chain_taxonomy.lst")
+        file = open(input, "r")
+        file.close()
+        input = str("./SIFTS/pdb_pubmed.lst")
+        file = open(input, "r")
+        file.close()
+        SIFTS = True
+        print "SIFTS... OK"
+    except:
+        SIFTS = False        
+        print "SIFTS... NOT OK"
+        
 def addtoPATH():
     sys.path.append("./src/tools")
     sys.path.append("./src/tools/blast+")
@@ -122,81 +204,95 @@ def addtoPATH():
     sys.path.append("./src/tools/clustalw")
     sys.path.append("./src/tools/mafft")
     sys.path.append("./src/tools/muscle")
-    sys.path.append("./src/tools/phylip")
     
-def main():
-    "Pycoevol main program parses files and options as arguments"
-    args = sys.argv
-    
+def ParseArguments():
     global file1
-    global chain1
     global id1
+    global chain1
     global file2
-    global chain2
     global id2
+    global chain2
+    global parameterfile
     global psiblast
     global alignment
     global coevolution
-    
-    if len(args) != 6:
-        if args[0] == "-h" or args[0] == "-help":
-            printUsage()
-        else: 
-            printUsage()
-        return
+    global dirname
+
+    # defaults
+    pathcwd = os.getcwd()
+    dirname = os.getcwd() + "/Results/"
+    parameterfile = ''
+    file1 = ''
+    file2 = '' 
+    chain1 = ''
+    chain2 = ''
+
+    parser = OptionParser(usage='Pycoevol.py input1 input2 [options]')
+    parser.add_option('-b', '--psiblast', type='string',
+                      dest='psiblast', default='internet',
+                      help='internet, local or custom')
+    parser.add_option('-a', '--alignment', type='string',
+                      dest='alignment', default='clustalw',
+                      help='clustalw, muscle, mafft or custom')
+    parser.add_option('-c', '--coevolution', type='string',
+                      dest='coevolution', default='mi',
+                      help='mi, mie, rcwmi, cpvn, clm, vol, omes, pearson, spearman, mcbasc, quartets, sca or elsc')
+    parser.add_option('-i', '--id', action='append', type='string',
+                      dest='ids', default=[])
+    parser.add_option('-x', '--chain', action='append', type='string',
+                      dest='chains', default=[])
+    parser.add_option('-p', '--parameters',
+                      dest='parameterfile', default=parameterfile)
+      
+    (options, args) = parser.parse_args()
+    if len(args) == 0 and len(options.ids) == 0:
+        parser.print_help()
+        sys.exit()
+        
+    if len(args) == 2:
+        input1 = args[0]
+        input2 = args[1]
+        dirname = os.path.dirname(input1) + "/"
+        file1 = os.path.basename(input1)
+        file2 = os.path.basename(input2)
+        id1 = file1.split(".")[0]
+        id2 = file2.split(".")[0]
+    if len(options.chains) == 2:
+        chain1 = options.chains[0]
+        chain2 = options.chains[1]
+    if len(options.ids) == 2:
+        id1 = options.ids[0]
+        id2 = options.ids[1]
+        if chain1 == '' and chain2 == '':
+            file1 = id1 + ".fasta"
+            file2 = id2 + ".fasta"
+        else:
+            file1 = id1 + ".pdb"
+            file2 = id2 + ".pdb"
+    if options.parameterfile != '':
+        parameterfile = options.parameterfile.strip('"')
+        LP(parameterfile, "test")
     else:
-        arg1 = args[1].split(":")
-        if len(arg1) != 1: 
-            file1 = arg1[0].lstrip("-")
-            chain1 = arg1[1]
-            id1 = file1.split(".")
-            if len(id1) != 1:
-                id1 = id1[0]
-            else:
-                id1 = id1[0]
-                file1 = file1 + ".pdb"
-        else:
-            arg1 = args[1]
-            file1 = arg1.lstrip("-")
-            chain1 = ""
-            id1 = file1.split(".")
-            if len(id1) != 1:
-                id1 = id1[0]
-            else:
-                id1 = id1[0] 
-                file1 = file1 + ".fasta"
-            
-        arg2 = args[2].split(":")
-        if len(arg2) != 1: 
-            file2 = arg2[0].lstrip("-")
-            chain2 = arg2[1]
-            id2 = file2.split(".")
-            if len(id2) != 1:
-                id2 = id2[0]
-            else:
-                id2 = id2[0]
-                file2 = file2 + ".pdb"
-        else:
-            arg2 = args[2]
-            file2 = arg2.lstrip("-")
-            chain2 = ""
-            id2 = file2.split(".")
-            if len(id2) != 1:
-                id2 = id2[0]
-            else:
-                id2 = id2[0] 
-                file2 = file2 + ".fasta"
-        
-        psiblast = args[3].lstrip("-")
-        alignment = args[4].lstrip("-")
-        coevolution = args[5].lstrip("-")
-        
-        checkArguments()
-        checkDependencies()
-        addtoPATH()
-        pycoevolRun()
-        return
+        parameterfile = pathcwd + "/Params.config"
+        parameterfile = parameterfile.strip('"')
+        LP(parameterfile, "test")
+    psiblast = options.psiblast
+    alignment = options.alignment
+    coevolution = options.coevolution
+
+def main():
+    ParseArguments()        
+    checkArguments()
+    print 'Arguments... OK'
+    checkDependencies()
+    print 'Dependencies... OK'
+    checkSIFTS()
+    addtoPATH()        
+    pycoevolRun()
+    print 'Analysis Complete !!'
+    return
     
 if __name__ == "__main__":
     main()
     
+

@@ -46,47 +46,38 @@ Bioinformatics Models, Methods and Algorithms - BIOINFORMATICS 2012, pp.143-9.
 
 ##Usage
  
-_python Pycoevol.py  -input1 -input2 -psiblast -alignment -coevolution_
-    
-    input1        -seq1.fasta (-seqID1), -pdb1.pdb:A (-PDBID1:A) or -align1.fasta   
-                  (where A is the chain designator)                
-    input2        -seq2.fasta (-seqID2), -pdb2.pdb:B (-PDBID2:B) or -align2.fasta 
-                  (where B is the chain designator) 
-    psiblast      -internet, -local or -none (NCBI's PSIBLAST and local database are optional) 
-    alignment     -clustalw, -muscle, -mafft or -none (MUSCLE and MAFFT are optional) 
-    coevolution   -mi, -mie, -rcwmi,-cpvnmie, -cpvn, -clm, -vol, -omes, -pearson, 
-                  -spearman, -mcbasc, -quartets, -sca or -elsc
-    help          -h or -help
+_python Pycoevol.py input1 input2 [options]_
 
 
-Pycoevol.py is the main execution file which parses files and options
-as arguments. Parameters.py must be edited in order to specify some 
-parameters.
+ 
+	-h, --help		show this help message and exit
+     
+	-b PSIBLAST, --psiblast=PSIBLAST
+ 
+					internet, local or custom
+     
+	-a ALIGNMENT, --alignment=ALIGNMENT
+ 
+					clustalw, muscle, mafft or custom
+     
+	-c COEVOLUTION, --coevolution=COEVOLUTION
+ 
+					mi, mie, rcwmi, cpvn, clm, vol, omes, pearson,spearman, mcbasc, quartets, sca or elsc
+     
+	-i IDS, --id=IDS
+ 
+	-x CHAINS, --chain=CHAINS
+ 
+	-p PARAMETERFILE, --parameters=PARAMETERFILE
 
-The processed files are written in the ./Pycoevol/Data folder and 
-output results are written in the ./Pycoevol/Results folder.
-Make sure you insert input files in the ./Pycoevol/Data folder.
+For a detailed overview on how to install and use Pycoevol, please refer to the [User Guide] (https://sites.google.com/site/fmadeirawiki/home/pycoevol/Pycoevol_userguide.pdf) 
 
-The workflow starts with the input of protein sequences (FASTA format) or 3D structures
-(PDB files). Alternatively, the user can input the accession numbers for protein sequences (GI
-sequence identifier and UniProt ID) and structures (PDB ID). The analysis can be started with 
-alignment files (FASTA), but both alignments must have the same number of sequences matched by 
-organism.
-
-**Examples:**
-
-* _python Pycoevol.py -3DX6.pdb:A -3DX6.pdb:B -internet -clustalw -sca_ (local PDB files)
-* _python Pycoevol.py -3DX6:A -3DX6:B -internet -clustalw -sca_ (PDB accession numbers)
-* _python Pycoevol.py -seq1.fasta -seq2.fasta -local -mafft -mi_ (local sequence files in FASTA)
-* _python Pycoevol.py -P30481 -P61769 -local -mafft -mi_ (GI or UniProt sequence identifiers)
-* _python Pycoevol.py -align1.fasta -align2.fasta -custom -custom -cpvn_ (local alignments in FASTA)
 
 **Coevolution measures:**
 
 * Mutual Information (mi) [Gloor et al, 2005]
 * MI by pair Entropy (mie) [Martin et al, 2005]
 * Row and Column Weighed MI (rcwmi) [Gouveia-Oliveira et al, 2007]
-* Contact Preferences, Volume Normalized MIE (cpvnmie) [F. Madeira, 2012 - unpublished]
 * Contact Preferences, Volume Normalized (cpvn) [Glaser et al, 2001]
 * Contact PDB-derived Likelihood Matrix (clm) [Singer et al, 2002]
 * Residue-residue Volume Normalized (vol) [based on Esque et al, 2010]
@@ -113,5 +104,5 @@ Source code available at
 https://github.com/fmadeira/pycoevol
 
 
-*F. Madeira, 2012*
+*Fábio Madeira and Ludwig Krippahl, 2012*
 
