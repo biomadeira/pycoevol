@@ -100,8 +100,8 @@ Henikoff and Henikoff, 1992]
 
 ##Availability
 
-Source code available at
-https://github.com/fmadeira/pycoevol
+Packages available at
+http://code.google.com/p/pycoevol/
 
 
 *Fábio Madeira and Ludwig Krippahl, 2012*
