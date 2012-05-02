@@ -5,6 +5,7 @@
 # This work is public domain.                                                 #
 ###############################################################################
 
+import os
 from Parameters import LoadParameters as LP
 from src.UTILS import charge, charge_his, polarity, hydropathy
 from os import remove, system
@@ -55,17 +56,32 @@ class alignment:
             output_align = self.dirname + id + ".aln"
             output_fasta = self.dirname + id + "_clustalw.fasta"
             output_tree = self.dirname + id + ".dnd"
-            clustalw = ClustalwCommandline(infile=input_sequences,
-                                           outfile=output_align,
-                                           newtree=output_tree,
-                                           align="input",
-                                           seqnos="ON",
-                                           outorder="input",
-                                           type="PROTEIN",
-                                           pwmatrix=d_matrix,
-                                           gapopen=gop,
-                                           gapext=gep) 
-            clustalw()
+            try:
+                cmd = str(os.getcwd() + "/src/clustalw/clustalw.exe")
+                clustalw = ClustalwCommandline(cmd, infile=input_sequences,
+                                               outfile=output_align,
+                                               newtree=output_tree,
+                                               align="input",
+                                               seqnos="ON",
+                                               outorder="input",
+                                               type="PROTEIN",
+                                               pwmatrix=d_matrix,
+                                               gapopen=gop,
+                                               gapext=gep) 
+                clustalw()
+            except:
+                cmd = str(os.getcwd() + "/src/clustalw/clustalw")
+                clustalw = ClustalwCommandline(cmd, infile=input_sequences,
+                                               outfile=output_align,
+                                               newtree=output_tree,
+                                               align="input",
+                                               seqnos="ON",
+                                               outorder="input",
+                                               type="PROTEIN",
+                                               pwmatrix=d_matrix,
+                                               gapopen=gop,
+                                               gapext=gep) 
+                clustalw()
             AlignIO.convert(output_align, "clustal", output_fasta, "fasta")
             try:
                 remove(output_align)

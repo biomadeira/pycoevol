@@ -157,11 +157,20 @@ def checkDependencies():
         raise ImportError, "ERROR: Unable to import Matplotlib"
     
     try:
-        input = "./src/tools/clustalw/test/test.fasta"
-        clustalw = ClustalwCommandline(infile=input) 
-        clustalw()
-        os.remove("./src/tools/clustalw/test/test.aln")
-        os.remove("./src/tools/clustalw/test/test.dnd")
+        try:
+            cmd = str(os.getcwd() + "/src/tools/clustalw/clustalw.exe")
+            input = "./src/tools/clustalw/test/test.fasta"
+            clustalw = ClustalwCommandline(cmd, infile=input) 
+            clustalw()
+            os.remove("./src/tools/clustalw/test/test.aln")
+            os.remove("./src/tools/clustalw/test/test.dnd")
+        except:
+            cmd = str(os.getcwd() + "/src/tools/clustalw/clustalw")
+            input = "./src/tools/clustalw/test/test.fasta"
+            clustalw = ClustalwCommandline(cmd, infile=input) 
+            clustalw()
+            os.remove("./src/tools/clustalw/test/test.aln")
+            os.remove("./src/tools/clustalw/test/test.dnd")
     except:
         raise StandardError, "ERROR: Unable to run ClustalW"
         
@@ -284,10 +293,10 @@ def main():
     ParseArguments()        
     checkArguments()
     print 'Arguments... OK'
+    addtoPATH()
     checkDependencies()
     print 'Dependencies... OK'
-    checkSIFTS()
-    addtoPATH()        
+    checkSIFTS()        
     pycoevolRun()
     print 'Analysis Complete !!'
     return

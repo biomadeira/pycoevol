@@ -1,4 +1,4 @@
-###############################################################################
+﻿###############################################################################
 # Encoding utf-8                                                              #
 # F. Madeira and L. Krippahl, 2012                                            #
 # This code is part of Pycoevol distribution.                                 #
@@ -28,21 +28,21 @@ class information:
     def getInfo(self, id):
         "Creates info about the sequences, psiblast, organisms, etc"
     
-        input = "./Data/" + id + ".fasta"
+        input = self.dirname + id + ".fasta"
         sequence = SeqIO.parse(input, "fasta")
         for seq_record in sequence:
             seq = seq_record.seq
             length = len(seq)
             break
     
-        input = "./Data/" + id + ".blast"
+        input = self.dirname + id + ".blast"
         hit = 0
         sequences = SeqIO.parse(input, "fasta")
         for record in sequences:
             sequence = record.seq              
             hit += 1      
         
-        input = "./Data/" + id + ".fasta"
+        input = self.dirname + id + ".fasta"
         sequences = SeqIO.parse(input, "fasta")
         organisms = 0
         for record in sequences:
