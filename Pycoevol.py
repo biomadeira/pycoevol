@@ -198,12 +198,12 @@ def checkSIFTS():
         print "SIFTS... NOT OK"
         
 def addtoPATH():
-    sys.path.append("./src/tools")
-    sys.path.append("./src/tools/blast+")
+    sys.path.append("./src/tools/")
+    sys.path.append("./src/tools/blast+/")
     sys.path.append("./src/tools/blast+/db")
-    sys.path.append("./src/tools/clustalw")
-    sys.path.append("./src/tools/mafft")
-    sys.path.append("./src/tools/muscle")
+    sys.path.append("./src/tools/clustalw/")
+    sys.path.append("./src/tools/mafft/")
+    sys.path.append("./src/tools/muscle/")
     
 def ParseArguments():
     global file1
