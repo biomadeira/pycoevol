@@ -165,13 +165,14 @@ class organism:
                 output_align = self.dirname + id1 + ".aln"
                 output_tree = self.dirname + id1 + ".dnd"
                 distance = self.dirname + id1 + ".distance"
+                
                 try:
-                    cmd = str(os.getcwd() + "/src/clustalw/clustalw.exe")
-                    clustalw = system(cmd + " " + pair + " > " + distance) 
+                    cmd = str(os.getcwd() + "/src/tools/clustalw/clustalw.exe")
+                    clustalw = system(cmd + " " + pair + " > " + distance)
                     clustalw
                 except:
-                    cmd = str(os.getcwd() + "/src/clustalw/clustalw")
-                    clustalw = system(cmd + " " + pair + " > " + distance) 
+                    cmd = str(os.getcwd() + "/src/tools/clustalw/clustalw")
+                    clustalw = system(cmd + " " + pair + " > " + distance)
                     clustalw
                 
                 output_fasta = self.dirname + id1 + "_pair.fasta"
@@ -235,13 +236,14 @@ class organism:
                 output_align = self.dirname + id2 + ".aln"
                 output_tree = self.dirname + id2 + ".dnd"
                 distance = self.dirname + id2 + ".distance"
+                
                 try:
-                    cmd = str(os.getcwd() + "/src/clustalw/clustalw.exe")
-                    clustalw = system(cmd + " " + pair + " > " + distance) 
+                    cmd = str(os.getcwd() + "/src/tools/clustalw/clustalw.exe")
+                    clustalw = system(cmd + " " + pair + " > " + distance)
                     clustalw
                 except:
-                    cmd = str(os.getcwd() + "/src/clustalw/clustalw")
-                    clustalw = system(cmd + " " + pair + " > " + distance) 
+                    cmd = str(os.getcwd() + "/src/tools/clustalw/clustalw")
+                    clustalw = system(cmd + " " + pair + " > " + distance)
                     clustalw 
                 
                 output_fasta = self.dirname + id2 + "_pair.fasta"

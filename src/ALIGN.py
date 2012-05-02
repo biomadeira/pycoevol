@@ -57,7 +57,7 @@ class alignment:
             output_fasta = self.dirname + id + "_clustalw.fasta"
             output_tree = self.dirname + id + ".dnd"
             try:
-                cmd = str(os.getcwd() + "/src/clustalw/clustalw.exe")
+                cmd = str(os.getcwd() + "/src/tools/clustalw/clustalw.exe")
                 clustalw = ClustalwCommandline(cmd, infile=input_sequences,
                                                outfile=output_align,
                                                newtree=output_tree,
@@ -70,7 +70,7 @@ class alignment:
                                                gapext=gep) 
                 clustalw()
             except:
-                cmd = str(os.getcwd() + "/src/clustalw/clustalw")
+                cmd = str(os.getcwd() + "/src/tools/clustalw/clustalw")
                 clustalw = ClustalwCommandline(cmd, infile=input_sequences,
                                                outfile=output_align,
                                                newtree=output_tree,
