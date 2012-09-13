@@ -1,4 +1,4 @@
-﻿﻿PYCOEVOL
+﻿PYCOEVOL
 ========
 A Python workflow to study protein-protein coevolution and interaction
  
@@ -70,7 +70,7 @@ _python Pycoevol.py input1 input2 [options]_
  
 	-p PARAMETERFILE, --parameters=PARAMETERFILE
 
-For a detailed overview on how to install and use Pycoevol, please refer to the [User Guide] (https://sites.google.com/site/fmadeirawiki/home/pycoevol/Pycoevol_userguide.pdf) 
+For a detailed overview on how to install and use Pycoevol, please refer to the User Guide.
 
 
 **Coevolution measures:**
@@ -97,11 +97,6 @@ For a detailed overview on how to install and use Pycoevol, please refer to the 
 * Kimura distance [Kimura, 1983]
 * Pairwise score using Dayhoff or Henikoff matrices [Dayhoff et al, 1978; 
 Henikoff and Henikoff, 1992]
-
-##Availability
-
-Packages available at
-http://code.google.com/p/pycoevol/
 
 
 *Fábio Madeira and Ludwig Krippahl, 2012*
