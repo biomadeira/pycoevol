@@ -28,6 +28,9 @@ Fábio Madeira and Ludwig Krippahl. 2012. PYCOEVOL: A Python workflow to study
 protein-protein coevolution. Proceedings of the International conference on 
 Bioinformatics Models, Methods and Algorithms - BIOINFORMATICS 2012, pp.143-9. 
 
+This work was partially supported by Portuguese National funds through Fundação 
+para a Ciência e Tecnologia (FCT)under project CREMA PTDC/EIA-CCO/115999/2009
+
 ##Dependencies
 
 [Python 2.7.2](http://python.org/),
@@ -100,3 +103,6 @@ Henikoff and Henikoff, 1992]
 
 
 *Fábio Madeira and Ludwig Krippahl, 2012*
+This work was partially supported by Portuguese National
+funds through Fundação para a Ciência e Tecnologia (FCT)
+under project CREMA PTDC/EIA-CCO/115999/2009
