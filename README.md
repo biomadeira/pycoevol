@@ -29,7 +29,7 @@ protein-protein coevolution. Proceedings of the International conference on
 Bioinformatics Models, Methods and Algorithms - BIOINFORMATICS 2012, pp.143-9. 
 
 This work was partially supported by Portuguese National funds through Fundação 
-para a Ciência e Tecnologia (FCT)under project CREMA PTDC/EIA-CCO/115999/2009
+para a Ciência e Tecnologia (FCT) under project CREMA PTDC/EIA-CCO/115999/2009.
 
 ##Dependencies
 
@@ -106,4 +106,4 @@ Henikoff and Henikoff, 1992]
 
 This work was partially supported by Portuguese National
 funds through Fundação para a Ciência e Tecnologia (FCT)
-under project CREMA PTDC/EIA-CCO/115999/2009
+under project CREMA PTDC/EIA-CCO/115999/2009.
