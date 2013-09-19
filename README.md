@@ -103,6 +103,7 @@ Henikoff and Henikoff, 1992]
 
 
 *Fábio Madeira and Ludwig Krippahl, 2012*
+
 This work was partially supported by Portuguese National
 funds through Fundação para a Ciência e Tecnologia (FCT)
 under project CREMA PTDC/EIA-CCO/115999/2009
