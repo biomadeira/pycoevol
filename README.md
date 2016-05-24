@@ -41,7 +41,7 @@ para a Ciência e Tecnologia (FCT) under project CREMA PTDC/EIA-CCO/115999/2009.
 
 **Optional:**
 [NCBI Blast+](http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download),
-[NCBI's "refseq_protein" database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/),
+[NCBI's "refseq_protein" database](ftp.ncbi.nlm.nih.gov/blast/db/),
 [MUSCLE](http://www.drive5.com/muscle/),
 [MAFFT](http://mafft.cbrc.jp/alignment/software/) and
 [SIFTS lst files](http://www.ebi.ac.uk/pdbe/docs/sifts/quick.html)
@@ -73,7 +73,8 @@ _python Pycoevol.py input1 input2 [options]_
  
 	-p PARAMETERFILE, --parameters=PARAMETERFILE
 
-For a detailed overview on how to install and use Pycoevol, please refer to the User Guide.
+For a detailed overview on how to install and use Pycoevol, please refer to the 
+[User Guide](Pycoevol_userguide.pdf).
 
 
 **Coevolution measures:**
