@@ -12,12 +12,12 @@ It generates friendly output results: matrix of scores; histograms;
 heat-maps; PyMOL scripts and interaction maps. Additional information for common web-services
 can be retrieved from SIFTS. 
 
-##Disclaimer 
+## Disclaimer 
 
 This software is provided "as is", with no explicit or implied warranties. 
 Use this software at your own risk.
 
-##Copyright
+## Copyright
 
 This software is public domain, and everyone has the right to copy, 
 distribute, reuse, modify, improve and debug it.
@@ -31,7 +31,7 @@ Bioinformatics Models, Methods and Algorithms - BIOINFORMATICS 2012, pp.143-9.
 This work was partially supported by Portuguese National funds through Fundação 
 para a Ciência e Tecnologia (FCT) under project CREMA PTDC/EIA-CCO/115999/2009.
 
-##Dependencies
+## Dependencies
 
 [Python 2.7.2](http://python.org/),
 [Biopython 1.58](http://biopython.org/),
@@ -47,7 +47,7 @@ para a Ciência e Tecnologia (FCT) under project CREMA PTDC/EIA-CCO/115999/2009.
 [SIFTS lst files](http://www.ebi.ac.uk/pdbe/docs/sifts/quick.html)
 
 
-##Usage
+## Usage
  
 _python Pycoevol.py input1 input2 [options]_
 
